@@ -83,7 +83,7 @@ def escape(text):
     """
     def fixup(m):
         ch = m.group(0)
-        return '&#' + str(ord(ch)) + ';'
+        return f'&#{ord(ch)};'
 
     text = re.sub('[^ -~]|[&"]', fixup, text)
     return text if isinstance(text, str) else str(text)
@@ -97,10 +97,7 @@ def unescape(text):
         text = m.group(0)
         if text[1] == '#':
             # Character reference
-            if text[2] == 'x':
-                code = int(text[3:-1], 16)
-            else:
-                code = int(text[2:-1])
+            code = int(text[3:-1], 16) if text[2] == 'x' else int(text[2:-1])
         else:
             # Named entity
             try:
@@ -133,18 +130,17 @@ def literal_destringizer(rep):
     ValueError
         If ``rep`` is not a Python literal.
     """
-    if isinstance(rep, (str, unicode)):
-        orig_rep = rep
-        try:
-            # Python 3.2 does not recognize 'u' prefixes before string literals
-            if rtp_fix_unicode:
-                rep = str(rtp_fix_unicode.refactor_string(
-                    rep + '\n', '<string>'))[:-1]
-            return literal_eval(rep)
-        except (ParseError, SyntaxError, TokenError):
-            raise ValueError('%r is not a valid Python literal' % (orig_rep,))
-    else:
+    if not isinstance(rep, (str, unicode)):
         raise ValueError('%r is not a string' % (rep,))
+    orig_rep = rep
+    try:
+        # Python 3.2 does not recognize 'u' prefixes before string literals
+        if rtp_fix_unicode:
+            rep = str(rtp_fix_unicode.refactor_string(
+                rep + '\n', '<string>'))[:-1]
+        return literal_eval(rep)
+    except (ParseError, SyntaxError, TokenError):
+        raise ValueError('%r is not a valid Python literal' % (orig_rep,))
 
 
 @open_file(0, mode='rb')
@@ -266,8 +262,7 @@ def parse_gml(lines, label='label', destringizer=None):
         if isinstance(lines, (str, unicode)):
             lines = decode_line(lines)
             lines = lines.splitlines()
-            for line in lines:
-                yield line
+            yield from lines
         else:
             for line in lines:
                 line = decode_line(line)
@@ -294,8 +289,7 @@ def parse_gml_lines(lines, label, destringizer):
             r'\]',            # dict end
             r'#.*$|\s+'       # comments and whitespaces
             ]
-        tokens = re.compile(
-            '|'.join('(' + pattern + ')' for pattern in patterns))
+        tokens = re.compile('|'.join(f'({pattern})' for pattern in patterns))
         lineno = 0
         for line in lines:
             length = len(line)
@@ -304,7 +298,7 @@ def parse_gml_lines(lines, label, destringizer):
                 match = tokens.match(line, pos)
                 if match is not None:
                     for i in range(len(patterns)):
-                        group = match.group(i + 1)
+                        group = match[i + 1]
                         if group is not None:
                             if i == 0:    # keys
                                 value = group.rstrip()
@@ -342,7 +336,7 @@ def parse_gml_lines(lines, label, destringizer):
             key = curr_token[1]
             curr_token = next(tokens)
             type = curr_token[0]
-            if type == 1 or type == 2:  # reals or ints
+            if type in [1, 2]:  # reals or ints
                 value = curr_token[1]
                 curr_token = next(tokens)
             elif type == 3:  # strings
@@ -388,8 +382,11 @@ def parse_gml_lines(lines, label, destringizer):
         G = nx.DiGraph() if directed else nx.Graph()
     else:
         G = nx.MultiDiGraph() if directed else nx.MultiGraph()
-    G.graph.update((key, value) for key, value in graph.items()
-                   if key != 'node' and key != 'edge')
+    G.graph.update(
+        (key, value)
+        for key, value in graph.items()
+        if key not in ['node', 'edge']
+    )
 
     def pop_attr(dct, type, attr, i):
         try:
@@ -485,7 +482,7 @@ def literal_stringizer(value):
                 try:
                     value.encode('latin1')
                 except UnicodeEncodeError:
-                    text = 'u' + text
+                    text = f'u{text}'
             buf.write(text)
         elif isinstance(value, (float, complex, str, bytes)):
             buf.write(repr(value))
@@ -598,20 +595,18 @@ def generate_gml(G, stringizer=None):
                 # integral and hence needs fixing.
                 epos = text.rfind('E')
                 if epos != -1 and text.find('.', 0, epos) == -1:
-                    text = text[:epos] + '.' + text[epos:]
+                    text = f'{text[:epos]}.{text[epos:]}'
                 yield indent + key + ' ' + text
             elif isinstance(value, dict):
                 yield indent + key + ' ['
-                next_indent = indent + '  '
+                next_indent = f'{indent}  '
                 for key, value in value.items():
-                    for line in stringize(key, value, (), next_indent):
-                        yield line
-                yield indent + ']'
+                    yield from stringize(key, value, (), next_indent)
+                yield f'{indent}]'
             elif isinstance(value, list) and value and not in_list:
-                next_indent = indent + '  '
+                next_indent = f'{indent}  '
                 for value in value:
-                    for line in stringize(key, value, (), next_indent, True):
-                        yield line
+                    yield from stringize(key, value, (), next_indent, True)
             else:
                 if stringizer:
                     try:
@@ -633,20 +628,16 @@ def generate_gml(G, stringizer=None):
         yield '  multigraph 1'
     ignored_keys = {'directed', 'multigraph', 'node', 'edge'}
     for attr, value in G.graph.items():
-        for line in stringize(attr, value, ignored_keys, '  '):
-            yield line
-
+        yield from stringize(attr, value, ignored_keys, '  ')
     # Output node data
     node_id = dict(zip(G, range(len(G))))
     ignored_keys = {'id', 'label'}
     for node, attrs in G.node.items():
         yield '  node ['
-        yield '    id ' + str(node_id[node])
-        for line in stringize('label', node, (), '    '):
-            yield line
+        yield f'    id {str(node_id[node])}'
+        yield from stringize('label', node, (), '    ')
         for attr, value in attrs.items():
-            for line in stringize(attr, value, ignored_keys, '    '):
-                yield line
+            yield from stringize(attr, value, ignored_keys, '    ')
         yield '  ]'
 
     # Output edge data
@@ -657,14 +648,12 @@ def generate_gml(G, stringizer=None):
         kwargs['keys'] = True
     for e in G.edges_iter(**kwargs):
         yield '  edge ['
-        yield '    source ' + str(node_id[e[0]])
-        yield '    target ' + str(node_id[e[1]])
+        yield f'    source {str(node_id[e[0]])}'
+        yield f'    target {str(node_id[e[1]])}'
         if multigraph:
-            for line in stringize('key', e[2], (), '    '):
-                yield line
+            yield from stringize('key', e[2], (), '    ')
         for attr, value in e[-1].items():
-            for line in stringize(attr, value, ignored_keys, '    '):
-                yield line
+            yield from stringize(attr, value, ignored_keys, '    ')
         yield '  ]'
     yield ']'
 

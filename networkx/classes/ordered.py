@@ -2,6 +2,7 @@
 OrderedDict variants of the default base classes.
 
 """
+
 from collections import OrderedDict
 
 from .graph import Graph
@@ -9,14 +10,12 @@ from .multigraph import MultiGraph
 from .digraph import DiGraph
 from .multidigraph import MultiDiGraph
 
-__all__ = []
-
-__all__.extend([
+__all__ = [
     'OrderedGraph',
     'OrderedDiGraph',
     'OrderedMultiGraph',
     'OrderedMultiDiGraph',
-])
+]
 
 class OrderedGraph(Graph):
     node_dict_factory = OrderedDict

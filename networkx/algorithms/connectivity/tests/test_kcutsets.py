@@ -19,7 +19,7 @@ def graph_example_1():
     G = nx.convert_node_labels_to_integers(nx.grid_graph([5,5]),
                                             label_attribute='labels')
     rlabels = nx.get_node_attributes(G, 'labels')
-    labels = dict((v, k) for k, v in rlabels.items())
+    labels = {v: k for k, v in rlabels.items()}
 
     for nodes in [(labels[(0,0)], labels[(1,0)]),
                     (labels[(0,4)], labels[(1,4)]),
@@ -55,7 +55,7 @@ def torrents_and_ferraro_graph():
     G = nx.convert_node_labels_to_integers(nx.grid_graph([5,5]),
                                             label_attribute='labels')
     rlabels = nx.get_node_attributes(G, 'labels')
-    labels = dict((v, k) for k, v in rlabels.items())
+    labels = {v: k for k, v in rlabels.items()}
 
     for nodes in [ (labels[(0,4)], labels[(1,4)]),
                     (labels[(3,4)], labels[(4,4)]) ]:
@@ -165,19 +165,17 @@ def _generate_no_biconnected(max_attempts=50):
         if nx.is_connected(G) and not nx.is_biconnected(G):
             attempts = 0
             yield G
+        elif attempts >= max_attempts:
+            raise Exception("Tried %d times: no suitable Graph."%attempts % max_attempts)
         else:
-            if attempts >= max_attempts:
-                msg = "Tried %d times: no suitable Graph."%attempts
-                raise Exception(msg % max_attempts)
-            else:
-                attempts += 1
+            attempts += 1
 
 
 def test_articulation_points():
     Ggen = _generate_no_biconnected()
-    for i in range(2):
+    for _ in range(2):
         G = next(Ggen)
-        articulation_points = list({a} for a in nx.articulation_points(G))
+        articulation_points = [{a} for a in nx.articulation_points(G)]
         for cut in nx.all_node_cuts(G):
             assert_true(cut in articulation_points)
 
@@ -188,10 +186,10 @@ def test_grid_2d_graph():
     # neighbors of the four corner nodes.
     G = nx.grid_2d_graph(5, 5)
     solution = [
-        set([(0, 1), (1, 0)]),
-        set([(3, 0), (4, 1)]),
-        set([(3, 4), (4, 3)]),
-        set([(0, 3), (1, 4)]),
+        {(0, 1), (1, 0)},
+        {(3, 0), (4, 1)},
+        {(3, 4), (4, 3)},
+        {(0, 3), (1, 4)},
     ]
     for cut in nx.all_node_cuts(G):
         assert_true(cut in solution)

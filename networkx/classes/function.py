@@ -103,13 +103,9 @@ def density(G):
     n=number_of_nodes(G)
     m=number_of_edges(G)
     if m==0 or n <= 1:
-        d=0.0
+        return 0.0
     else:
-        if G.is_directed():
-            d=m/float(n*(n-1))
-        else:
-            d= m*2.0/float(n*(n-1))
-    return d
+        return m/float(n*(n-1)) if G.is_directed() else m*2.0/float(n*(n-1))
 
 
 def degree_histogram(G):
@@ -133,7 +129,7 @@ def degree_histogram(G):
     """
     degseq=list(G.degree().values())
     dmax=max(degseq)+1
-    freq= [ 0 for d in range(dmax) ]
+    freq = [0 for _ in range(dmax)]
     for d in degseq:
         freq[d] += 1
     return freq
@@ -291,7 +287,7 @@ def info(G, n=None):
 
     else:
         if n not in G:
-            raise nx.NetworkXError("node %s not in graph"%(n,))
+            raise nx.NetworkXError(f"node {n} not in graph")
         info+="Node % s has the following properties:\n"%n
         info+="Degree: %d\n"%G.degree(n)
         info+="Neighbors: "
@@ -354,7 +350,7 @@ def get_node_attributes(G, name):
     >>> color[1]
     'red'
     """
-    return dict( (n,d[name]) for n,d in G.node.items() if name in d)
+    return {n: d[name] for n,d in G.node.items() if name in d}
 
 
 def set_edge_attributes(G, name, values):
@@ -387,10 +383,7 @@ def set_edge_attributes(G, name, values):
         values.items
     except AttributeError:
         # Treat `value` as the attribute value for each edge.
-        if G.is_multigraph():
-            edges = G.edges(keys=True)
-        else:
-            edges = G.edges()
+        edges = G.edges(keys=True) if G.is_multigraph() else G.edges()
         values = dict(zip(edges, [values] * len(edges)))
 
     if G.is_multigraph():
@@ -429,7 +422,7 @@ def get_edge_attributes(G, name):
         edges = G.edges(keys=True, data=True)
     else:
         edges = G.edges(data=True)
-    return dict( (x[:-1], x[-1][name]) for x in edges if name in x[-1] )
+    return {x[:-1]: x[-1][name] for x in edges if name in x[-1]}
 
 
 
@@ -451,13 +444,13 @@ def all_neighbors(graph, node):
     neighbors : iterator
         Iterator of neighbors
     """
-    if graph.is_directed():
-        values = itertools.chain.from_iterable([graph.predecessors_iter(node),
-                                                graph.successors_iter(node)])
-    else:
-        values = graph.neighbors_iter(node)
-
-    return values
+    return (
+        itertools.chain.from_iterable(
+            [graph.predecessors_iter(node), graph.successors_iter(node)]
+        )
+        if graph.is_directed()
+        else graph.neighbors_iter(node)
+    )
 
 
 def non_neighbors(graph, node):
@@ -476,7 +469,7 @@ def non_neighbors(graph, node):
     non_neighbors : iterator
         Iterator of nodes in the graph that are not neighbors of the node.
     """
-    nbors = set(neighbors(graph, node)) | set([node])
+    nbors = set(neighbors(graph, node)) | {node}
     return (nnode for nnode in graph if nnode not in nbors)
 
 

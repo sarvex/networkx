@@ -203,7 +203,7 @@ def _tracemin_fiedler(L, X, normalized, tol, method):
                 x = daxpy(e, x, a=-ddot(x, e))
             return x
         solver = _PCGSolver(lambda x: P(L * P(x)), lambda x: D * x)
-    elif method == 'chol' or method == 'lu':
+    elif method in ['chol', 'lu']:
         # Convert A to CSC to suppress SparseEfficiencyWarning.
         A = csc_matrix(L, dtype=float, copy=True)
         # Force A to be nonsingular. Since A is the Laplacian matrix of a
@@ -273,7 +273,7 @@ def _get_fiedler_func(method):
             X = asmatrix(normal(size=(q, L.shape[0]))).T
             sigma, X = _tracemin_fiedler(L, X, normalized, tol, method)
             return sigma[0], X[:, 0]
-    elif method == 'lanczos' or method == 'lobpcg':
+    elif method in ['lanczos', 'lobpcg']:
         def find_fiedler(L, x, normalized, tol):
             L = csc_matrix(L, dtype=float)
             n = L.shape[0]
@@ -297,7 +297,7 @@ def _get_fiedler_func(method):
                                   maxiter=n, largest=False)
                 return sigma[0], X[:, 0]
     else:
-        raise nx.NetworkXError("unknown method '%s'." % method)
+        raise nx.NetworkXError(f"unknown method '{method}'.")
 
     return find_fiedler
 

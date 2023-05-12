@@ -135,7 +135,7 @@ def kosaraju_strongly_connected_components(G,source=None):
             continue
         c = nx.dfs_preorder_nodes(G,r)
         new=[v for v in c if v not in seen]
-        seen.update([(u,True) for u in new])
+        seen |= [(u,True) for u in new]
         yield new
 
 @not_implemented_for('undirected')
@@ -183,8 +183,7 @@ def strongly_connected_components_recursive(G):
         stack.append(v)
         for w in G[v]:
             if w not in visited:
-                for c in visit(w,cnt):
-                    yield c
+                yield from visit(w,cnt)
             if w not in component:
                 root[v]=min(root[v],root[w])
         if root[v]==visited[v]:
@@ -204,8 +203,7 @@ def strongly_connected_components_recursive(G):
     stack=[]
     for source in G:
         if source not in visited:
-            for c in visit(source,cnt):
-                yield c
+            yield from visit(source,cnt)
 
 @not_implemented_for('undirected')
 def strongly_connected_component_subgraphs(G, copy=True):
@@ -332,7 +330,7 @@ def condensation(G, scc=None):
     C = nx.DiGraph()
     for i, component in enumerate(scc):
         members[i] = component
-        mapping.update((n, i) for n in component)
+        mapping |= ((n, i) for n in component)
     number_of_components = i + 1
     C.add_nodes_from(range(number_of_components))
     C.add_edges_from((mapping[u], mapping[v]) for u, v in G.edges_iter()

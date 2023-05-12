@@ -168,8 +168,8 @@ def sets(G):
     color
     """
     c = color(G)
-    X = set(n for n in c if c[n]) # c[n] == 1
-    Y = set(n for n in c if not c[n]) # c[n] == 0
+    X = {n for n in c if c[n]}
+    Y = {n for n in c if not c[n]}
     return (X, Y)
 
 def density(B, nodes):
@@ -204,16 +204,11 @@ def density(B, nodes):
     """
     n=len(B)
     m=nx.number_of_edges(B)
+    if m==0:
+        return 0.0
     nb=len(nodes)
     nt=n-nb
-    if m==0: # includes cases n==0 and n==1
-        d=0.0
-    else:
-        if B.is_directed():
-            d=m/(2.0*float(nb*nt))
-        else:
-            d= m/float(nb*nt)
-    return d
+    return m/(2.0*float(nb*nt)) if B.is_directed() else m/float(nb*nt)
 
 def degrees(B, nodes, weight=None):
     """Return the degrees of the two node sets in the bipartite graph B.

@@ -108,17 +108,10 @@ def draw(G, pos=None, ax=None, hold=None, **kwds):
         print("Matplotlib unable to open display")
         raise
 
-    if ax is None:
-        cf = plt.gcf()
-    else:
-        cf = ax.get_figure()
+    cf = plt.gcf() if ax is None else ax.get_figure()
     cf.set_facecolor('w')
     if ax is None:
-        if cf._axstack() is None:
-            ax = cf.add_axes((0, 0, 1, 1))
-        else:
-            ax = cf.gca()
-
+        ax = cf.add_axes((0, 0, 1, 1)) if cf._axstack() is None else cf.gca()
     if 'with_labels' not in kwds:
         kwds['with_labels'] = 'labels' in kwds
     b = plt.ishold()
@@ -371,7 +364,7 @@ def draw_networkx_nodes(G, pos,
     try:
         xy = numpy.asarray([pos[v] for v in nodelist])
     except KeyError as e:
-        raise nx.NetworkXError('Node %s has no position.'%e)
+        raise nx.NetworkXError(f'Node {e} has no position.')
     except ValueError:
         raise nx.NetworkXError('Bad value in node positions.')
 
@@ -502,11 +495,7 @@ def draw_networkx_edges(G, pos,
     # set edge positions
     edge_pos = numpy.asarray([(pos[e[0]], pos[e[1]]) for e in edgelist])
 
-    if not cb.iterable(width):
-        lw = (width,)
-    else:
-        lw = width
-
+    lw = (width, ) if not cb.iterable(width) else width
     if not cb.is_string_like(edge_color) \
            and cb.iterable(edge_color) \
            and len(edge_color) == len(edge_pos):
@@ -514,24 +503,23 @@ def draw_networkx_edges(G, pos,
                          for c in edge_color]):
             # (should check ALL elements)
             # list of color letters such as ['k','r','k',...]
-            edge_colors = tuple([colorConverter.to_rgba(c, alpha)
-                                 for c in edge_color])
+            edge_colors = tuple(colorConverter.to_rgba(c, alpha) for c in edge_color)
         elif numpy.alltrue([not cb.is_string_like(c)
                            for c in edge_color]):
             # If color specs are given as (rgb) or (rgba) tuples, we're OK
-            if numpy.alltrue([cb.iterable(c) and len(c) in (3, 4)
-                             for c in edge_color]):
-                edge_colors = tuple(edge_color)
-            else:
-                # numbers (which are going to be mapped with a colormap)
-                edge_colors = None
+            edge_colors = (
+                tuple(edge_color)
+                if numpy.alltrue(
+                    [cb.iterable(c) and len(c) in {3, 4} for c in edge_color]
+                )
+                else None
+            )
         else:
             raise ValueError('edge_color must consist of either color names or numbers')
+    elif cb.is_string_like(edge_color) or len(edge_color) == 1:
+        edge_colors = (colorConverter.to_rgba(edge_color, alpha), )
     else:
-        if cb.is_string_like(edge_color) or len(edge_color) == 1:
-            edge_colors = (colorConverter.to_rgba(edge_color, alpha), )
-        else:
-            raise ValueError('edge_color must be a single color or list of exactly m colors where m is the number or edges')
+        raise ValueError('edge_color must be a single color or list of exactly m colors where m is the number or edges')
 
     edge_collection = LineCollection(edge_pos,
                                      colors=edge_colors,
@@ -700,7 +688,7 @@ def draw_networkx_labels(G, pos,
         ax = plt.gca()
 
     if labels is None:
-        labels = dict((n, n) for n in G.nodes())
+        labels = {n: n for n in G.nodes()}
 
     # set optional alignment
     horizontalalignment = kwds.get('horizontalalignment', 'center')
@@ -817,7 +805,7 @@ def draw_networkx_edge_labels(G, pos,
     if ax is None:
         ax = plt.gca()
     if edge_labels is None:
-        labels = dict(((u, v), d) for u, v, d in G.edges(data=True))
+        labels = {(u, v): d for u, v, d in G.edges(data=True)}
     else:
         labels = edge_labels
     text_items = {}

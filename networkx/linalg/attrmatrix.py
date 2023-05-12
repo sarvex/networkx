@@ -31,19 +31,17 @@ def _node_value(G, node_attr):
 
     """
     if node_attr is None:
-        value = lambda u: u
+        return lambda u: u
     elif not hasattr(node_attr, '__call__'):
         # assume it is a key for the node attribute dictionary
-        value = lambda u: G.node[u][node_attr]
+        return lambda u: G.node[u][node_attr]
     else:
         # Advanced:  Allow users to specify something else.
         #
         # For example,
         #     node_attr = lambda u: G.node[u].get('size', .5) * 3
         #
-        value = node_attr
-
-    return value
+        return node_attr
 
 def _edge_value(G, edge_attr):
     """Returns a function that returns a value from G[u][v].
@@ -79,27 +77,26 @@ def _edge_value(G, edge_attr):
     if edge_attr is None:
         # topological count of edges
 
-        if G.is_multigraph():
-            value = lambda u,v: len(G[u][v])
-        else:
-            value = lambda u,v: 1
-
+        value = (lambda u,v: len(G[u][v])) if G.is_multigraph() else (lambda u,v: 1)
     elif not hasattr(edge_attr, '__call__'):
         # assume it is a key for the edge attribute dictionary
 
         if edge_attr == 'weight':
             # provide a default value
-            if G.is_multigraph():
-                value = lambda u,v: sum([d.get(edge_attr, 1) for d in G[u][v].values()])
-            else:
-                value = lambda u,v: G[u][v].get(edge_attr, 1)
+            value = (
+                (
+                    lambda u, v: sum(
+                        d.get(edge_attr, 1) for d in G[u][v].values()
+                    )
+                )
+                if G.is_multigraph()
+                else (lambda u, v: G[u][v].get(edge_attr, 1))
+            )
+        elif G.is_multigraph():
+            value = lambda u,v: sum(d[edge_attr] for d in G[u][v].values())
         else:
-            # otherwise, the edge attribute MUST exist for each edge
-            if G.is_multigraph():
-                value = lambda u,v: sum([d[edge_attr] for d in G[u][v].values()])
-            else:
-                value = lambda u,v: G[u][v][edge_attr]
-            
+            value = lambda u,v: G[u][v][edge_attr]
+
     else:
         # Advanced:  Allow users to specify something else.
         #
@@ -247,13 +244,9 @@ def attr_matrix(G, edge_attr=None, node_attr=None, normalized=False,
     edge_value = _edge_value(G, edge_attr)
     node_value = _node_value(G, node_attr)
 
-    if rc_order is None:
-        ordering = list(set([node_value(n) for n in G]))
-    else:
-        ordering = rc_order
-
+    ordering = list({node_value(n) for n in G}) if rc_order is None else rc_order
     N = len(ordering)
-    undirected = not G.is_directed()   
+    undirected = not G.is_directed()
     index = dict(zip(ordering, range(N)))
     M = np.zeros((N,N), dtype=dtype, order=order)
 
@@ -275,10 +268,7 @@ def attr_matrix(G, edge_attr=None, node_attr=None, normalized=False,
 
     M = np.asmatrix(M)
 
-    if rc_order is None:
-        return M, ordering
-    else:
-        return M
+    return (M, ordering) if rc_order is None else M
 
 def attr_sparse_matrix(G, edge_attr=None, node_attr=None, 
                        normalized=False, rc_order=None, dtype=None):
@@ -410,13 +400,9 @@ def attr_sparse_matrix(G, edge_attr=None, node_attr=None,
     edge_value = _edge_value(G, edge_attr)
     node_value = _node_value(G, node_attr)
 
-    if rc_order is None:
-        ordering = list(set([node_value(n) for n in G]))
-    else:
-        ordering = rc_order
-
+    ordering = list({node_value(n) for n in G}) if rc_order is None else rc_order
     N = len(ordering)
-    undirected = not G.is_directed()   
+    undirected = not G.is_directed()
     index = dict(zip(ordering, range(N)))
     M = sparse.lil_matrix((N,N), dtype=dtype)
 
@@ -438,10 +424,7 @@ def attr_sparse_matrix(G, edge_attr=None, node_attr=None,
         for i,norm in enumerate(norms):
             M[i,:] /= norm 
 
-    if rc_order is None:
-        return M, ordering
-    else:
-        return M
+    return (M, ordering) if rc_order is None else M
 
 
 # fixture for nose tests

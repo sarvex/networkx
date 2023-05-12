@@ -27,7 +27,7 @@ def weakly_connected_components(G):
         if v not in seen:
             c=_single_source_shortest_unipath_length(G,v)
             yield list(c.keys())
-            seen.update(c)
+            seen |= c
 
 @not_implemented_for('undirected')
 def number_weakly_connected_components(G):
@@ -116,7 +116,7 @@ def _single_source_shortest_unipath_length(G,source,cutoff=None):
 
     seen={}                  # level (number of hops) when seen in BFS
     level=0                  # the current level
-    nextlevel = set([source]) # set of nodes to check at next level
+    nextlevel = {source}
     while nextlevel:
         thislevel=nextlevel  # advance to next level
         nextlevel = set()         # and start a new list (fringe)

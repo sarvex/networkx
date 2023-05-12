@@ -99,11 +99,11 @@ def line_graph(G, create_using=None):
     constructed line graph may not be correct.
 
     """
-    if G.is_directed():
-        L = _lg_directed(G, create_using=create_using)
-    else:
-        L = _lg_undirected(G, selfloops=False, create_using=create_using)
-    return L
+    return (
+        _lg_directed(G, create_using=create_using)
+        if G.is_directed()
+        else _lg_undirected(G, selfloops=False, create_using=create_using)
+    )
 
 def _node_func(G):
     """Returns a function which returns a sorted node for line graphs.
@@ -160,11 +160,7 @@ def _lg_directed(G, create_using=None):
         A digraph instance used to populate the line graph.
 
     """
-    if create_using is None:
-        L = G.__class__()
-    else:
-        L = create_using
-
+    L = G.__class__() if create_using is None else create_using
     # Create a graph specific edge function.
     get_edges = _edge_func(G)
 
@@ -200,11 +196,7 @@ def _lg_undirected(G, selfloops=False, create_using=None):
     produce self-loops.
 
     """
-    if create_using is None:
-        L = G.__class__()
-    else:
-        L = create_using
-
+    L = G.__class__() if create_using is None else create_using
     # Graph specific functions for edges and sorted nodes.
     get_edges = _edge_func(G)
     sorted_node = _node_func(G)

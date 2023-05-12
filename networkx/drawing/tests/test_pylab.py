@@ -17,9 +17,7 @@ class TestPylab(object):
             mpl.use('PS',warn=False)
             import matplotlib.pyplot as plt
             plt.rcParams['text.usetex'] = False
-        except ImportError:
-            raise SkipTest('matplotlib not available.')
-        except RuntimeError:
+        except (ImportError, RuntimeError):
             raise SkipTest('matplotlib not available.')
 
     def setUp(self):

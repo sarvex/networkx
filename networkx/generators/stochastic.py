@@ -31,14 +31,11 @@ def stochastic_graph(G, copy=True, weight='weight'):
       the edge weight is set to 1.  Weights must be positive numbers.
     """
     import warnings
-    if copy:
-        W = nx.DiGraph(G)
-    else:
-        W = G # reference original graph, no copy
+    W = nx.DiGraph(G) if copy else G
     degree = W.out_degree(weight=weight)
     for (u,v,d) in W.edges(data=True):
         if degree[u] == 0:
-            warnings.warn('zero out-degree for node %s'%u)
+            warnings.warn(f'zero out-degree for node {u}')
             d[weight] = 0.0
         else:
             d[weight] = float(d.get(weight,1.0))/degree[u]

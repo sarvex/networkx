@@ -110,13 +110,7 @@ def is_arborescence(G):
     is_tree
 
     """
-    if not is_tree(G):
-        return False
-
-    if max(G.in_degree().values()) > 1:
-        return False
-
-    return True
+    return False if not is_tree(G) else max(G.in_degree().values()) <= 1
 
 @nx.utils.not_implemented_for('undirected')
 def is_branching(G):
@@ -144,13 +138,7 @@ def is_branching(G):
     is_forest
 
     """
-    if not is_forest(G):
-        return False
-
-    if max(G.in_degree().values()) > 1:
-        return False
-
-    return True
+    return False if not is_forest(G) else max(G.in_degree().values()) <= 1
 
 def is_forest(G):
     """
@@ -190,12 +178,10 @@ def is_forest(G):
     else:
         components = nx.connected_component_subgraphs
 
-    for component in components(G):
-        # Make sure the component is a tree.
-        if component.number_of_edges() != component.number_of_nodes() - 1:
-            return False
-
-    return True
+    return all(
+        component.number_of_edges() == component.number_of_nodes() - 1
+        for component in components(G)
+    )
 
 def is_tree(G):
     """
@@ -234,9 +220,5 @@ def is_tree(G):
     if G.number_of_edges() != len(G) - 1:
         return False
 
-    if G.is_directed():
-        is_connected = nx.is_weakly_connected
-    else:
-        is_connected = nx.is_connected
-
+    is_connected = nx.is_weakly_connected if G.is_directed() else nx.is_connected
     return is_connected(G)

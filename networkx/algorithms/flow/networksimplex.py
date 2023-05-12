@@ -335,8 +335,6 @@ def network_simplex(G, demand='demand', capacity='capacity', weight='weight'):
                     q = S[i]
                 yield i, p, q
                 m = 0
-        # All edges have nonnegative reduced costs. The current flow is
-        # optimal.
 
     def find_apex(p, q):
         """Find the lowest common ancestor of nodes p and q in the spanning
@@ -510,10 +508,7 @@ def network_simplex(G, demand='demand', capacity='capacity', weight='weight'):
         """Update the potentials of the nodes in the subtree rooted at a node
         q connected to its parent p by an edge i.
         """
-        if q == T[i]:
-            d = pi[p] - C[i] - pi[q]
-        else:
-            d = pi[p] + C[i] - pi[q]
+        d = pi[p] - C[i] - pi[q] if q == T[i] else pi[p] + C[i] - pi[q]
         for q in trace_subtree(q):
             pi[q] += d
 

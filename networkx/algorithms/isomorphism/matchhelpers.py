@@ -41,11 +41,7 @@ def allclose(x, y, rtol=1.0000000000000001e-05, atol=1e-08):
         The absolute error tolerance.
 
     """
-    # assume finite weights, see numpy.allclose() for reference
-    for xi, yi in zip(x,y):
-        if not ( abs(xi-yi) <= atol + rtol * abs(yi) ):
-            return False
-    return True
+    return all(abs(xi-yi) <= atol + rtol * abs(yi) for xi, yi in zip(x, y))
 
 
 def close(x, y, rtol=1.0000000000000001e-05, atol=1e-08):
@@ -99,9 +95,10 @@ def categorical_node_match(attr, default):
     else:
         attrs = list(zip(attr, default)) # Python 3
         def match(data1, data2):
-            values1 = set([data1.get(attr, d) for attr, d in attrs])
-            values2 = set([data2.get(attr, d) for attr, d in attrs])
+            values1 = {data1.get(attr, d) for attr, d in attrs}
+            values2 = {data2.get(attr, d) for attr, d in attrs}
             return values1 == values2
+
     return match
 
 try:
@@ -116,9 +113,10 @@ except NotImplementedError:
 def categorical_multiedge_match(attr, default):
     if nx.utils.is_string_like(attr):
         def match(datasets1, datasets2):
-            values1 = set([data.get(attr, default) for data in datasets1.values()])
-            values2 = set([data.get(attr, default) for data in datasets2.values()])
+            values1 = {data.get(attr, default) for data in datasets1.values()}
+            values2 = {data.get(attr, default) for data in datasets2.values()}
             return values1 == values2
+
     else:
         attrs = list(zip(attr, default)) # Python 3
         def match(datasets1, datasets2):

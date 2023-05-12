@@ -401,7 +401,7 @@ class DiGraph(Graph):
         for n in nodes:
             # keep all this inside try/except because
             # CPython throws TypeError on n not in self.succ,
-            # while pre-2.7.5 ironpython throws on self.succ[n] 
+            # while pre-2.7.5 ironpython throws on self.succ[n]
             try:
                 if n not in self.succ:
                     self.succ[n] = self.adjlist_dict_factory()
@@ -415,7 +415,7 @@ class DiGraph(Graph):
                     self.succ[nn] = self.adjlist_dict_factory()
                     self.pred[nn] = self.adjlist_dict_factory()
                     newdict = attr.copy()
-                    newdict.update(ndict)
+                    newdict |= ndict
                     self.node[nn] = newdict
                 else:
                     olddict = self.node[nn]
@@ -457,7 +457,7 @@ class DiGraph(Graph):
             nbrs=self.succ[n]
             del self.node[n]
         except KeyError: # NetworkXError if n not in self
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the digraph.")
         for u in nbrs:
             del self.pred[u][n] # remove all edges n-u in digraph
         del self.succ[n]          # remove node from succ
@@ -629,19 +629,18 @@ class DiGraph(Graph):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dict.")
+                        "The attr_dict argument must be a dict.")
         # process ebunch
         for e in ebunch:
             ne = len(e)
-            if ne==3:
-                u,v,dd = e
-                assert hasattr(dd,"update")
-            elif ne==2:
+            if ne == 2:
                 u,v = e
                 dd = {}
+            elif ne == 3:
+                u,v,dd = e
+                assert hasattr(dd,"update")
             else:
-                raise NetworkXError(\
-                    "Edge tuple %s must be a 2-tuple or 3-tuple."%(e,))
+                raise NetworkXError(f"Edge tuple {e} must be a 2-tuple or 3-tuple.")
             if u not in self.succ:
                 self.succ[u] = self.adjlist_dict_factory()
                 self.pred[u] = self.adjlist_dict_factory()
@@ -688,7 +687,7 @@ class DiGraph(Graph):
             del self.succ[u][v]
             del self.pred[v][u]
         except KeyError:
-            raise NetworkXError("The edge %s-%s not in graph."%(u,v))
+            raise NetworkXError(f"The edge {u}-{v} not in graph.")
 
 
     def remove_edges_from(self, ebunch):
@@ -747,14 +746,14 @@ class DiGraph(Graph):
         try:
             return iter(self.succ[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the digraph.")
 
     def predecessors_iter(self,n):
         """Return an iterator over predecessor nodes of n."""
         try:
             return iter(self.pred[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the digraph.")
 
     def successors(self, n):
         """Return a list of successor nodes of n.
@@ -1262,7 +1261,7 @@ class DiGraph(Graph):
             the original graph (this changes the original graph).
         """
         if copy:
-            H = self.__class__(name="Reverse of (%s)"%self.name)
+            H = self.__class__(name=f"Reverse of ({self.name})")
             H.add_nodes_from(self)
             H.add_edges_from( (v,u,deepcopy(d)) for u,v,d
                               in self.edges(data=True) )

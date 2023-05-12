@@ -78,8 +78,7 @@ def dijkstra_path(G, source, target, weight='weight'):
     try:
         return path[target]
     except KeyError:
-        raise nx.NetworkXNoPath(
-            "node %s not reachable from %s" % (source, target))
+        raise nx.NetworkXNoPath(f"node {source} not reachable from {target}")
 
 
 def dijkstra_path_length(G, source, target, weight='weight'):
@@ -128,8 +127,7 @@ def dijkstra_path_length(G, source, target, weight='weight'):
     try:
         return length[target]
     except KeyError:
-        raise nx.NetworkXNoPath(
-            "node %s not reachable from %s" % (source, target))
+        raise nx.NetworkXNoPath(f"node {source} not reachable from {target}")
 
 
 def single_source_dijkstra_path(G, source, cutoff=None, weight='weight'):
@@ -243,9 +241,8 @@ def single_source_dijkstra_path_length(G, source, cutoff=None,
 
         for w, edgedata in edata:
             vw_dist = dist[v] + edgedata.get(weight, 1)
-            if cutoff is not None:
-                if vw_dist > cutoff:
-                    continue
+            if cutoff is not None and vw_dist > cutoff:
+                continue
             if w in dist:
                 if vw_dist < dist[w]:
                     raise ValueError('Contradictory paths found:',
@@ -340,9 +337,8 @@ def single_source_dijkstra(G, source, target=None, cutoff=None, weight='weight')
 
         for w, edgedata in edata:
             vw_dist = dist[v] + edgedata.get(weight, 1)
-            if cutoff is not None:
-                if vw_dist > cutoff:
-                    continue
+            if cutoff is not None and vw_dist > cutoff:
+                continue
             if w in dist:
                 if vw_dist < dist[w]:
                     raise ValueError('Contradictory paths found:',
@@ -408,9 +404,8 @@ def dijkstra_predecessor_and_distance(G, source, cutoff=None, weight='weight'):
             edata = iter(G[v].items())
         for w, edgedata in edata:
             vw_dist = dist[v] + edgedata.get(weight, 1)
-            if cutoff is not None:
-                if vw_dist > cutoff:
-                    continue
+            if cutoff is not None and vw_dist > cutoff:
+                continue
             if w in dist:
                 if vw_dist < dist[w]:
                     raise ValueError('Contradictory paths found:',
@@ -458,11 +453,12 @@ def all_pairs_dijkstra_path_length(G, cutoff=None, weight='weight'):
 
     The dictionary returned only has keys for reachable node pairs.
     """
-    paths = {}
-    for n in G:
-        paths[n] = single_source_dijkstra_path_length(G, n, cutoff=cutoff,
-                                                      weight=weight)
-    return paths
+    return {
+        n: single_source_dijkstra_path_length(
+            G, n, cutoff=cutoff, weight=weight
+        )
+        for n in G
+    }
 
 
 def all_pairs_dijkstra_path(G, cutoff=None, weight='weight'):
@@ -500,11 +496,10 @@ def all_pairs_dijkstra_path(G, cutoff=None, weight='weight'):
     floyd_warshall()
 
     """
-    paths = {}
-    for n in G:
-        paths[n] = single_source_dijkstra_path(G, n, cutoff=cutoff,
-                                               weight=weight)
-    return paths
+    return {
+        n: single_source_dijkstra_path(G, n, cutoff=cutoff, weight=weight)
+        for n in G
+    }
 
 
 def bellman_ford(G, source, weight='weight'):
@@ -570,7 +565,7 @@ def bellman_ford(G, source, weight='weight'):
 
     """
     if source not in G:
-        raise KeyError("Node %s is not found in the graph" % source)
+        raise KeyError(f"Node {source} is not found in the graph")
 
     for u, v, attr in G.selfloop_edges(data=True):
         if attr.get(weight, 1) < 0:
@@ -589,17 +584,13 @@ def bellman_ford(G, source, weight='weight'):
         def get_weight(edge_dict):
             return edge_dict.get(weight, 1)
 
-    if G.is_directed():
-        G_succ = G.succ
-    else:
-        G_succ = G.adj
-
+    G_succ = G.succ if G.is_directed() else G.adj
     inf = float('inf')
     n = len(G)
 
     count = {}
     q = deque([source])
-    in_q = set([source])
+    in_q = {source}
 
     while q:
         u = q.popleft()
@@ -687,7 +678,7 @@ def goldberg_radzik(G, source, weight='weight'):
 
     """
     if source not in G:
-        raise KeyError("Node %s is not found in the graph" % source)
+        raise KeyError(f"Node {source} is not found in the graph")
 
     for u, v, attr in G.selfloop_edges(data=True):
         if attr.get(weight, 1) < 0:
@@ -703,13 +694,9 @@ def goldberg_radzik(G, source, weight='weight'):
         def get_weight(edge_dict):
             return edge_dict.get(weight, 1)
 
-    if G.is_directed():
-        G_succ = G.succ
-    else:
-        G_succ = G.adj
-
+    G_succ = G.succ if G.is_directed() else G.adj
     inf = float('inf')
-    d = dict((u, inf) for u in G)
+    d = {u: inf for u in G}
     d[source] = 0
     pred = {source: None}
 
@@ -739,7 +726,7 @@ def goldberg_radzik(G, source, weight='weight'):
             # nonpositive reduced costs into to_scan in (reverse) topological
             # order.
             stack = [(u, iter(G_succ[u].items()))]
-            in_stack = set([u])
+            in_stack = {u}
             neg_count[u] = 0
             while stack:
                 u, it = stack[-1]
@@ -789,13 +776,13 @@ def goldberg_radzik(G, source, weight='weight'):
 
     # Set of nodes relabled in the last round of scan operations. Denoted by B
     # in Goldberg and Radzik's paper.
-    relabeled = set([source])
+    relabeled = {source}
 
     while relabeled:
         to_scan = topo_sort(relabeled)
         relabeled = relax(to_scan)
 
-    d = dict((u, d[u]) for u in pred)
+    d = {u: d[u] for u in pred}
     return pred, d
 
 
@@ -917,9 +904,7 @@ def bidirectional_dijkstra(G, source, target, weight='weight'):
     dists  = [{},                {}]  # dictionary of final distances
     paths  = [{source: [source]}, {target: [target]}]  # dictionary of paths
     fringe = [[],                []]  # heap of (distance, node) tuples for
-                                      # extracting next node to expand
     seen   = [{source: 0},        {target: 0}]  # dictionary of distances to
-                                                # nodes seen
     c = count()
     # initialize fringe heap
     push(fringe[0], (0, next(c), source))
@@ -950,21 +935,18 @@ def bidirectional_dijkstra(G, source, target, weight='weight'):
             return (finaldist, finalpath)
 
         for w in neighs[dir](v):
-            if(dir == 0):  # forward
-                if G.is_multigraph():
-                    minweight = min((dd.get(weight, 1)
-                                     for k, dd in G[v][w].items()))
-                else:
-                    minweight = G[v][w].get(weight, 1)
-                vwLength = dists[dir][v] + minweight  # G[v][w].get(weight,1)
-            else:  # back, must remember to change v,w->w,v
-                if G.is_multigraph():
-                    minweight = min((dd.get(weight, 1)
-                                     for k, dd in G[w][v].items()))
-                else:
-                    minweight = G[w][v].get(weight, 1)
-                vwLength = dists[dir][v] + minweight  # G[w][v].get(weight,1)
-
+            if (dir == 0):  # forward
+                minweight = (
+                    min((dd.get(weight, 1) for k, dd in G[v][w].items()))
+                    if G.is_multigraph()
+                    else G[v][w].get(weight, 1)
+                )
+            elif G.is_multigraph():
+                minweight = min((dd.get(weight, 1)
+                                 for k, dd in G[w][v].items()))
+            else:
+                minweight = G[w][v].get(weight, 1)
+            vwLength = dists[dir][v] + minweight  # G[v][w].get(weight,1)
             if w in dists[dir]:
                 if vwLength < dists[dir][w]:
                     raise ValueError(
@@ -983,4 +965,4 @@ def bidirectional_dijkstra(G, source, target, weight='weight'):
                         revpath = paths[1][w][:]
                         revpath.reverse()
                         finalpath = paths[0][w] + revpath[1:]
-    raise nx.NetworkXNoPath("No path between %s and %s." % (source, target))
+    raise nx.NetworkXNoPath(f"No path between {source} and {target}.")

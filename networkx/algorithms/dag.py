@@ -32,9 +32,8 @@ def descendants(G, source):
        The descendants of source in G
     """
     if not G.has_node(source):
-        raise nx.NetworkXError("The node %s is not in the graph." % source)
-    des = set(nx.shortest_path_length(G, source=source).keys()) - set([source])
-    return des
+        raise nx.NetworkXError(f"The node {source} is not in the graph.")
+    return set(nx.shortest_path_length(G, source=source).keys()) - {source}
 
 def ancestors(G, source):
     """Return all nodes having a path to `source` in G.
@@ -50,9 +49,8 @@ def ancestors(G, source):
        The ancestors of source in G
     """
     if not G.has_node(source):
-        raise nx.NetworkXError("The node %s is not in the graph." % source)
-    anc = set(nx.shortest_path_length(G, target=source).keys()) - set([source])
-    return anc
+        raise nx.NetworkXError(f"The node {source} is not in the graph.")
+    return set(nx.shortest_path_length(G, target=source).keys()) - {source}
 
 def is_directed_acyclic_graph(G):
     """Return True if the graph G is a directed acyclic graph (DAG) or 
@@ -125,11 +123,11 @@ def topological_sort(G, nbunch=None, reverse=False):
 
     # nonrecursive version
     seen = set()
-    order = [] 
+    order = []
     explored = set() 
-                     
+
     if nbunch is None:
-        nbunch = G.nodes_iter() 
+        nbunch = G.nodes_iter()
     for v in nbunch:     # process all vertices in G
         if v in explored: 
             continue
@@ -153,10 +151,7 @@ def topological_sort(G, nbunch=None, reverse=False):
                 explored.add(w)
                 order.append(w)
                 fringe.pop()    # done considering this node
-    if reverse:
-        return order
-    else:
-        return list(reversed(order))
+    return order if reverse else list(reversed(order))
 
 def topological_sort_recursive(G, nbunch=None, reverse=False):
     """Return a list of nodes in topological sort order.
@@ -224,11 +219,8 @@ def topological_sort_recursive(G, nbunch=None, reverse=False):
     for v in nbunch:
         if v not in explored:
             _dfs(v)
-            
-    if reverse:
-        return order
-    else:
-        return list(reversed(order))
+
+    return order if reverse else list(reversed(order))
 
 def is_aperiodic(G):
     """Return True if G is aperiodic.

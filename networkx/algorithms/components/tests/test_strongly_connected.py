@@ -122,10 +122,7 @@ class TestStronglyConnected:
         scc = list(nx.strongly_connected_components(G))
         cG = nx.condensation(G, scc)
         assert_equal(cG.nodes(),[0,1])
-        if 1 in scc[0]:
-            edge = (0,1)
-        else:
-            edge = (1,0)
+        edge = (0, 1) if 1 in scc[0] else (1, 0)
         assert_equal(cG.edges(),[edge])
 
     def test_condensation_mapping_and_members(self):
@@ -133,8 +130,8 @@ class TestStronglyConnected:
         cG = nx.condensation(G)
         mapping = cG.graph['mapping']
         assert_true(all(n in G for n in mapping))
-        assert_true(all(0 == cN for n, cN in mapping.items() if n in C[0]))
-        assert_true(all(1 == cN for n, cN in mapping.items() if n in C[1]))
+        assert_true(all(cN == 0 for n, cN in mapping.items() if n in C[0]))
+        assert_true(all(cN == 1 for n, cN in mapping.items() if n in C[1]))
         for n, d in cG.nodes(data=True):
             assert_equal(C[n], cG.node[n]['members'])
 

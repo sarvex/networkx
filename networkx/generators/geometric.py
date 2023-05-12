@@ -83,7 +83,7 @@ def random_geometric_graph(n, radius, dim=2, pos=None):
     if pos is None:
         # random positions
         for n in G:
-            G.node[n]['pos']=[random.random() for i in range(0,dim)]
+            G.node[n]['pos'] = [random.random() for _ in range(0,dim)]
     else:
         nx.set_node_attributes(G,'pos',pos)
     # connect nodes within "radius" of each other
@@ -164,7 +164,7 @@ def geographical_threshold_graph(n, theta, alpha=2, dim=2,
     """
     G=nx.Graph()
     # add n nodes
-    G.add_nodes_from([v for v in range(n)])
+    G.add_nodes_from(list(range(n)))
     if weight is None:
         # choose weights from exponential distribution
         for n in G:
@@ -174,7 +174,7 @@ def geographical_threshold_graph(n, theta, alpha=2, dim=2,
     if pos is None:
         # random positions
         for n in G:
-            G.node[n]['pos']=[random.random() for i in range(0,dim)]
+            G.node[n]['pos'] = [random.random() for _ in range(0,dim)]
     else:
         nx.set_node_attributes(G,'pos',pos)
     G.add_edges_from(geographical_threshold_edges(G, theta, alpha))
@@ -329,7 +329,7 @@ def navigable_small_world_graph(n, p=1, q=1, r=2, dim=2, seed=None):
         raise nx.NetworkXException("q must be >= 0")
     if (r < 0):
         raise nx.NetworkXException("r must be >= 1")
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
     G = nx.DiGraph()
     nodes = list(product(range(n),repeat=dim))

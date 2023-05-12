@@ -92,24 +92,20 @@ def eigenvector_centrality(G, max_iter=100, tol=1.0e-6, nstart=None,
 
     """
     from math import sqrt
-    if type(G) == nx.MultiGraph or type(G) == nx.MultiDiGraph:
+    if type(G) in [nx.MultiGraph, nx.MultiDiGraph]:
         raise nx.NetworkXException("Not defined for multigraphs.")
 
     if len(G) == 0:
         raise nx.NetworkXException("Empty graph.")
 
-    if nstart is None:
-        # choose starting vector with entries of 1/len(G)
-        x = dict([(n,1.0/len(G)) for n in G])
-    else:
-        x = nstart
+    x = dict([(n,1.0/len(G)) for n in G]) if nstart is None else nstart
     # normalize starting vector
     s = 1.0/sum(x.values())
     for k in x:
         x[k] *= s
     nnodes = G.number_of_nodes()
     # make up to max_iter iterations
-    for i in range(max_iter):
+    for _ in range(max_iter):
         xlast = x
         x = dict.fromkeys(xlast, 0)
         # do the multiplication y^T = x^T A
@@ -125,7 +121,7 @@ def eigenvector_centrality(G, max_iter=100, tol=1.0e-6, nstart=None,
         for n in x:
             x[n] *= s
         # check convergence
-        err = sum([abs(x[n]-xlast[n]) for n in x])
+        err = sum(abs(x[n]-xlast[n]) for n in x)
         if err < nnodes*tol:
             return x
 
@@ -205,8 +201,7 @@ def eigenvector_centrality_numpy(G, weight='weight'):
     eigenvalue, eigenvector = linalg.eigs(M.T, k=1, which='LR')
     largest = eigenvector.flatten().real
     norm = sp.sign(largest.sum())*sp.linalg.norm(largest)
-    centrality = dict(zip(G,map(float,largest/norm)))
-    return centrality
+    return dict(zip(G,map(float,largest/norm)))
 
 
 # fixture for nose tests

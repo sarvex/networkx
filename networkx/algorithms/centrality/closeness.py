@@ -81,10 +81,7 @@ def closeness_centrality(G, u=None, distance=None, normalized=True):
     else:
         path_length = nx.single_source_shortest_path_length
 
-    if u is None:
-        nodes = G.nodes()
-    else:
-        nodes = [u]
+    nodes = G.nodes() if u is None else [u]
     closeness_centrality = {}
     for n in nodes:
         sp = path_length(G,n)
@@ -97,7 +94,4 @@ def closeness_centrality(G, u=None, distance=None, normalized=True):
                 closeness_centrality[n] *= s
         else:
             closeness_centrality[n] = 0.0
-    if u is not None:
-        return closeness_centrality[u]
-    else:
-        return closeness_centrality
+    return closeness_centrality[u] if u is not None else closeness_centrality

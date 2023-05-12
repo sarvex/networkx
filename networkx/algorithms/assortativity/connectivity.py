@@ -20,16 +20,12 @@ def _avg_deg_conn(G, neighbors, source_degree, target_degree,
         nbrdeg = target_degree(neighbors(n))
         if weight is None:
             s = float(sum(nbrdeg.values()))
-        else: # weight nbr degree by weight of (n,nbr) edge
-            if neighbors == G.neighbors:
-                s = float(sum((G[n][nbr].get(weight,1)*d
-                               for nbr,d in nbrdeg.items())))
-            elif neighbors == G.successors:
-                s = float(sum((G[n][nbr].get(weight,1)*d
-                               for nbr,d in nbrdeg.items())))
-            elif neighbors == G.predecessors:
-                s = float(sum((G[nbr][n].get(weight,1)*d
-                               for nbr,d in nbrdeg.items())))
+        elif neighbors in [G.neighbors, G.successors]:
+            s = float(sum((G[n][nbr].get(weight,1)*d
+                           for nbr,d in nbrdeg.items())))
+        elif neighbors == G.predecessors:
+            s = float(sum((G[nbr][n].get(weight,1)*d
+                           for nbr,d in nbrdeg.items())))
         dnorm[k] += source_degree(n, weight=weight)
         dsum[k] += s
 

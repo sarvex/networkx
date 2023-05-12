@@ -509,7 +509,7 @@ class Graph(object):
         for n in nodes:
             # keep all this inside try/except because
             # CPython throws TypeError on n not in self.succ,
-            # while pre-2.7.5 ironpython throws on self.succ[n] 
+            # while pre-2.7.5 ironpython throws on self.succ[n]
             try:
                 if n not in self.node:
                     self.adj[n] = self.adjlist_dict_factory()
@@ -521,7 +521,7 @@ class Graph(object):
                 if nn not in self.node:
                     self.adj[nn] = self.adjlist_dict_factory()
                     newdict = attr.copy()
-                    newdict.update(ndict)
+                    newdict |= ndict
                     self.node[nn] = newdict
                 else:
                     olddict = self.node[nn]
@@ -564,7 +564,7 @@ class Graph(object):
             nbrs = list(adj[n].keys()) # keys handles self-loops (allow mutation later)
             del self.node[n]
         except KeyError: # NetworkXError if n not in self
-            raise NetworkXError("The node %s is not in the graph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the graph.")
         for u in nbrs:
             del adj[u][n]   # remove all edges n-u in graph
         del adj[n]          # now remove node
@@ -638,9 +638,7 @@ class Graph(object):
         >>> [d for n,d in G.nodes_iter(data=True)]
         [{}, {}, {}]
         """
-        if data:
-            return iter(self.node.items())
-        return iter(self.node)
+        return iter(self.node.items()) if data else iter(self.node)
 
     def nodes(self, data=False):
         """Return a list of the nodes in the graph.
@@ -852,18 +850,17 @@ class Graph(object):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dictionary.")
+                        "The attr_dict argument must be a dictionary.")
         # process ebunch
         for e in ebunch:
             ne=len(e)
-            if ne==3:
-                u,v,dd = e
-            elif ne==2:
+            if ne == 2:
                 u,v = e
                 dd = {} #doesnt need edge_attr_dict_factory
+            elif ne == 3:
+                u,v,dd = e
             else:
-                raise NetworkXError(\
-                    "Edge tuple %s must be a 2-tuple or 3-tuple."%(e,))
+                raise NetworkXError(f"Edge tuple {e} must be a 2-tuple or 3-tuple.")
             if u not in self.node:
                 self.adj[u] = self.adjlist_dict_factory()
                 self.node[u] = {}
@@ -942,7 +939,7 @@ class Graph(object):
             if u != v:  # self-loop needs only one entry removed
                 del self.adj[v][u]
         except KeyError:
-            raise NetworkXError("The edge %s-%s is not in the graph"%(u,v))
+            raise NetworkXError(f"The edge {u}-{v} is not in the graph")
 
 
 
@@ -1064,7 +1061,7 @@ class Graph(object):
         try:
             return list(self.adj[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the graph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the graph.")
 
     def neighbors_iter(self, n):
         """Return an iterator over all neighbors of node n.
@@ -1087,7 +1084,7 @@ class Graph(object):
         try:
             return iter(self.adj[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the graph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the graph.")
 
     def edges(self, nbunch=None, data=False, default=None):
         """Return a list of edges.
@@ -1741,10 +1738,7 @@ class Graph(object):
         6.0
         """
         s=sum(self.degree(weight=weight).values())/2
-        if weight is None:
-            return int(s)
-        else:
-            return float(s)
+        return int(s) if weight is None else float(s)
 
     def number_of_edges(self, u=None, v=None):
         """Return the number of edges between two nodes.
@@ -1778,10 +1772,7 @@ class Graph(object):
         1
         """
         if u is None: return int(self.size())
-        if v in self.adj[u]:
-            return 1
-        else:
-            return 0
+        return 1 if v in self.adj[u] else 0
 
 
     def add_star(self, nodes, **attr):
@@ -1911,7 +1902,7 @@ class Graph(object):
             bunch=iter(self.adj.keys())
         elif nbunch in self: # if nbunch is a single node
             bunch=iter([nbunch])
-        else:                # if nbunch is a sequence of nodes
+        else:            # if nbunch is a sequence of nodes
             def bunch_iter(nlist,adj):
                 try:
                     for n in nlist:
@@ -1924,12 +1915,11 @@ class Graph(object):
                     # capture error for non-sequence/iterator nbunch.
                     if 'iter' in message:
                         raise NetworkXError(\
-                            "nbunch is not a node or a sequence of nodes.")
-                    # capture error for unhashable node.
+                                "nbunch is not a node or a sequence of nodes.")
                     elif 'hashable' in message:
-                        raise NetworkXError(\
-                            "Node %s in the sequence nbunch is not a valid node."%n)
+                        raise NetworkXError(f"Node {n} in the sequence nbunch is not a valid node.")
                     else:
                         raise
+
             bunch=bunch_iter(nbunch,self.adj)
         return bunch

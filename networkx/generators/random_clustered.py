@@ -90,7 +90,7 @@ def random_clustered_graph(joint_degree_sequence, create_using=None, seed=None):
     elif create_using.is_directed():
         raise nx.NetworkXError("Directed Graph not supported")
 
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
 
     # In Python 3, zip() returns an iterator. Make this into a list.
@@ -103,11 +103,8 @@ def random_clustered_graph(joint_degree_sequence, create_using=None, seed=None):
     tlist = []
     for n in G:
         degrees = joint_degree_sequence[n]
-        for icount in range(degrees[0]):
-            ilist.append(n)
-        for tcount in range(degrees[1]):
-            tlist.append(n)
-
+        ilist.extend(n for _ in range(degrees[0]))
+        tlist.extend(n for _ in range(degrees[1]))
     if len(ilist)%2 != 0 or len(tlist)%3 != 0:
         raise nx.NetworkXError('Invalid degree sequence')
 

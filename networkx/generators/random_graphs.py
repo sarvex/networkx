@@ -80,9 +80,9 @@ def fast_gnp_random_graph(n, p, seed=None, directed=False):
        Phys. Rev. E, 71, 036113, 2005.
     """
     G = empty_graph(n)
-    G.name="fast_gnp_random_graph(%s,%s)"%(n,p)
+    G.name = f"fast_gnp_random_graph({n},{p})"
 
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
 
     if p <= 0 or p >= 1:
@@ -100,9 +100,9 @@ def fast_gnp_random_graph(n, p, seed=None, directed=False):
             w = w + 1 + int(lr/lp)
             if v == w: # avoid self loops
                 w = w + 1
-            while  w >= n and v < n:
+            while w >= n and v < n:
                 w = w - n
-                v = v + 1
+                v += 1
                 if v == w: # avoid self loops
                     w = w + 1
             if v < n:
@@ -115,7 +115,7 @@ def fast_gnp_random_graph(n, p, seed=None, directed=False):
             w = w + 1 + int(lr/lp)
             while w >= v and v < n:
                 w = w - v
-                v = v + 1
+                v += 1
             if v < n:
                 G.add_edge(v, w)
     return G
@@ -153,18 +153,15 @@ def gnp_random_graph(n, p, seed=None, directed=False):
     .. [1] P. Erdős and A. Rényi, On Random Graphs, Publ. Math. 6, 290 (1959).
     .. [2] E. N. Gilbert, Random Graphs, Ann. Math. Stat., 30, 1141 (1959).
     """
-    if directed:
-        G=nx.DiGraph()
-    else:
-        G=nx.Graph()
+    G = nx.DiGraph() if directed else nx.Graph()
     G.add_nodes_from(range(n))
-    G.name="gnp_random_graph(%s,%s)"%(n,p)
+    G.name = f"gnp_random_graph({n},{p})"
     if p<=0:
         return G
     if p>=1:
         return complete_graph(n,create_using=G)
 
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
 
     if G.is_directed():
@@ -214,11 +211,8 @@ def dense_gnm_random_graph(n, m, seed=None):
         Volume 2/Seminumerical algorithms, Third Edition, Addison-Wesley, 1997.
     """
     mmax=n*(n-1)/2
-    if m>=mmax:
-        G=complete_graph(n)
-    else:
-        G=empty_graph(n)
-    G.name="dense_gnm_random_graph(%s,%s)"%(n,m)
+    G = complete_graph(n) if m>=mmax else empty_graph(n)
+    G.name = f"dense_gnm_random_graph({n},{m})"
 
     if n==1 or m>=mmax:
         return G
@@ -258,12 +252,9 @@ def gnm_random_graph(n, m, seed=None, directed=False):
     directed : bool, optional (default=False)
         If True return a directed graph
     """
-    if directed:
-        G=nx.DiGraph()
-    else:
-        G=nx.Graph()
+    G = nx.DiGraph() if directed else nx.Graph()
     G.add_nodes_from(range(n))
-    G.name="gnm_random_graph(%s,%s)"%(n,m)
+    G.name = f"gnm_random_graph({n},{m})"
 
     if seed is not None:
         random.seed(seed)
@@ -284,9 +275,8 @@ def gnm_random_graph(n, m, seed=None, directed=False):
         v = random.choice(nlist)
         if u==v or G.has_edge(u,v):
             continue
-        else:
-            G.add_edge(u,v)
-            edge_count=edge_count+1
+        G.add_edge(u,v)
+        edge_count += 1
     return G
 
 
@@ -329,12 +319,12 @@ def newman_watts_strogatz_graph(n, k, p, seed=None):
     if k>=n:
         raise nx.NetworkXError("k>=n, choose smaller k or larger n")
     G=empty_graph(n)
-    G.name="newman_watts_strogatz_graph(%s,%s,%s)"%(n,k,p)
+    G.name = f"newman_watts_strogatz_graph({n},{k},{p})"
     nlist = G.nodes()
     fromv = nlist
     # connect the k/2 neighbors
     for j in range(1, k // 2+1):
-        tov = fromv[j:] + fromv[0:j] # the first j are now last
+        tov = fromv[j:] + fromv[:j]
         for i in range(len(fromv)):
             G.add_edge(fromv[i], tov[i])
     # for each edge u-v, with probability p, randomly select existing
@@ -399,17 +389,17 @@ def watts_strogatz_graph(n, k, p, seed=None):
         random.seed(seed)
 
     G = nx.Graph()
-    G.name="watts_strogatz_graph(%s,%s,%s)"%(n,k,p)
+    G.name = f"watts_strogatz_graph({n},{k},{p})"
     nodes = list(range(n)) # nodes are labeled 0 to n-1
     # connect each node to k/2 neighbors
     for j in range(1, k // 2+1):
-        targets = nodes[j:] + nodes[0:j] # first j nodes are now last in list
+        targets = nodes[j:] + nodes[:j]
         G.add_edges_from(zip(nodes,targets))
     # rewire edges from each node
     # loop over all nodes in order (label) and neighbors in order (distance)
     # no self loops or multiple edges allowed
     for j in range(1, k // 2+1): # outer loop is neighbors
-        targets = nodes[j:] + nodes[0:j] # first j nodes are now last in list
+        targets = nodes[j:] + nodes[:j]
         # inner loop in node order
         for u,v in zip(nodes,targets):
             if random.random() < p:
@@ -560,7 +550,7 @@ def random_regular_graph(d, n, seed=None):
         edges = _try_creation()
 
     G = nx.Graph()
-    G.name = "random_regular_graph(%s, %s)" % (d, n)
+    G.name = f"random_regular_graph({d}, {n})"
     G.add_edges_from(edges)
 
     return G
@@ -615,7 +605,7 @@ def barabasi_albert_graph(n, m, seed=None):
 
     # Add m initial nodes (m0 in barabasi-speak)
     G=empty_graph(m)
-    G.name="barabasi_albert_graph(%s,%s)"%(n,m)
+    G.name = f"barabasi_albert_graph({n},{m})"
     # Target nodes for new edges
     targets=list(range(m))
     # List of existing nodes, with nodes repeated once for each adjacent edge
@@ -688,9 +678,8 @@ def powerlaw_cluster_graph(n, m, p, seed=None):
     G=empty_graph(m) # add m initial nodes (m0 in barabasi-speak)
     G.name="Powerlaw-Cluster Graph"
     repeated_nodes=G.nodes()  # list of existing nodes to sample from
-                           # with nodes repeated once for each adjacent edge
     source=m               # next node is m
-    while source<n:        # Now add the other n-1 nodes
+    while source<n:    # Now add the other n-1 nodes
         possible_targets = _random_subset(repeated_nodes,m)
         # do one preferential attachment for new node
         target=possible_targets.pop()
@@ -699,20 +688,21 @@ def powerlaw_cluster_graph(n, m, p, seed=None):
         count=1
         while count<m:  # add m-1 more new links
             if random.random()<p: # clustering step: add triangle
-                neighborhood=[nbr for nbr in G.neighbors(target) \
-                               if not G.has_edge(source,nbr) \
-                               and not nbr==source]
-                if neighborhood: # if there is a neighbor without a link
+                if neighborhood := [
+                    nbr
+                    for nbr in G.neighbors(target)
+                    if not G.has_edge(source, nbr) and nbr != source
+                ]:
                     nbr=random.choice(neighborhood)
                     G.add_edge(source,nbr) # add triangle
                     repeated_nodes.append(nbr)
-                    count=count+1
+                    count += 1
                     continue # go to top of while loop
             # else do preferential attachment step if above fails
             target=possible_targets.pop()
             G.add_edge(source,target)
             repeated_nodes.append(target)
-            count=count+1
+            count += 1
 
         repeated_nodes.extend([source]*m)  # add source node to list m times
         source += 1
@@ -876,9 +866,8 @@ def random_shell_graph(constructor, seed=None):
             v = random.choice(nlist2)
             if u==v or G.has_edge(u,v):
                 continue
-            else:
-                G.add_edge(u,v)
-                edge_count=edge_count+1
+            G.add_edge(u,v)
+            edge_count += 1
     return G
 
 
@@ -913,7 +902,7 @@ def random_powerlaw_tree(n, gamma=3, seed=None, tries=100):
         raise nx.NetworkXError(\
               "Exceeded max (%d) attempts for a valid tree sequence."%tries)
     G=degree_sequence_tree(s)
-    G.name="random_powerlaw_tree(%s,%s)"%(n,gamma)
+    G.name = f"random_powerlaw_tree({n},{gamma})"
     return G
 
 
@@ -960,5 +949,4 @@ def random_powerlaw_tree_sequence(n, gamma=3, seed=None, tries=100):
 
     raise nx.NetworkXError(\
           "Exceeded max (%d) attempts for a valid tree sequence."%tries)
-    return False
 

@@ -102,22 +102,11 @@ def from_pydot(P):
     >>> G=nx.Graph(nx.from_pydot(A)) # make a Graph instead of MultiGraph
 
     """
-    if P.get_strict(None): # pydot bug: get_strict() shouldn't take argument
-        multiedges=False
-    else:
-        multiedges=True
-
+    multiedges = not P.get_strict(None)
     if P.get_type()=='graph': # undirected
-        if multiedges:
-            create_using=nx.MultiGraph()
-        else:
-            create_using=nx.Graph()
+        create_using = nx.MultiGraph() if multiedges else nx.Graph()
     else:
-        if multiedges:
-            create_using=nx.MultiDiGraph()
-        else:
-            create_using=nx.DiGraph()
-
+        create_using = nx.MultiDiGraph() if multiedges else nx.DiGraph()
     # assign defaults
     N=nx.empty_graph(0,create_using)
     N.name=P.get_name()
@@ -140,15 +129,11 @@ def from_pydot(P):
         if isinstance(u, basestring):
             s.append(u.strip('"'))
         else:
-            for unodes in u['nodes']:
-                s.append(unodes.strip('"'))
-
+            s.extend(unodes.strip('"') for unodes in u['nodes'])
         if isinstance(v, basestring):
             d.append(v.strip('"'))
         else:
-            for vnodes in v['nodes']:
-                d.append(vnodes.strip('"'))
-
+            d.extend(vnodes.strip('"') for vnodes in v['nodes'])
         for source_node in s:
             for destination_node in d:
                 N.add_edge(source_node,destination_node,**attr)
@@ -185,10 +170,7 @@ def to_pydot(N, strict=True):
     pydot = load_pydot()
 
     # set Graphviz graph type
-    if N.is_directed():
-        graph_type='digraph'
-    else:
-        graph_type='graph'
+    graph_type = 'digraph' if N.is_directed() else 'graph'
     strict=N.number_of_selfloops()==0 and not N.is_multigraph()
 
     name = N.graph.get('name')
@@ -196,8 +178,9 @@ def to_pydot(N, strict=True):
     if name is None:
         P = pydot.Dot(graph_type=graph_type,strict=strict,**graph_defaults)
     else:
-        P = pydot.Dot('"%s"'%name,graph_type=graph_type,strict=strict,
-                      **graph_defaults)
+        P = pydot.Dot(
+            f'"{name}"', graph_type=graph_type, strict=strict, **graph_defaults
+        )
     try:
         P.set_node_defaults(**N.graph['node'])
     except KeyError:
@@ -208,19 +191,19 @@ def to_pydot(N, strict=True):
         pass
 
     for n,nodedata in N.nodes_iter(data=True):
-        str_nodedata=dict((k,make_str(v)) for k,v in nodedata.items())
+        str_nodedata = {k: make_str(v) for k,v in nodedata.items()}
         p=pydot.Node(make_str(n),**str_nodedata)
         P.add_node(p)
 
     if N.is_multigraph():
         for u,v,key,edgedata in N.edges_iter(data=True,keys=True):
-            str_edgedata=dict((k,make_str(v)) for k,v in edgedata.items())
+            str_edgedata = {k: make_str(v) for k,v in edgedata.items()}
             edge=pydot.Edge(make_str(u),make_str(v),key=make_str(key),**str_edgedata)
             P.add_edge(edge)
 
     else:
         for u,v,edgedata in N.edges_iter(data=True):
-            str_edgedata=dict((k,make_str(v)) for k,v in edgedata.items())
+            str_edgedata = {k: make_str(v) for k,v in edgedata.items()}
             edge=pydot.Edge(make_str(u),make_str(v),**str_edgedata)
             P.add_edge(edge)
     return P
@@ -277,12 +260,12 @@ def pydot_layout(G,prog='neato',root=None, **kwds):
     D=P.create_dot(prog=prog)
 
     if D=="":  # no data returned
-        print("Graphviz layout with %s failed"%(prog))
+        print(f"Graphviz layout with {prog} failed")
         print()
         print("To debug what happened try:")
         print("P=pydot_from_networkx(G)")
         print("P.write_dot(\"file.dot\")")
-        print("And then run %s on file.dot"%(prog))
+        print(f"And then run {prog} on file.dot")
         return
 
     Q=pydot.graph_from_dot_data(D)

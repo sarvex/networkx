@@ -60,11 +60,10 @@ def min_weighted_dominating_set(G, weight=None):
 
     # min cover = min dominating set
     dom_set = set([])
-    cost_func = dict((node, nd.get(weight, 1)) \
-                     for node, nd in G.nodes_iter(data=True))
+    cost_func = {node: nd.get(weight, 1) for node, nd in G.nodes_iter(data=True)}
 
     vertices = set(G)
-    sets = dict((node, set([node]) | set(G[node])) for node in G)
+    sets = {node: {node} | set(G[node]) for node in G}
 
     def _cost(subset):
         """ Our cost effectiveness function for sets given its weight

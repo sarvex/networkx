@@ -103,7 +103,7 @@ def digitsrep(n,b=10):
         x=int(floor(n // b**pow))
         dlist.append(x)
         n=n-x*b**pow
-        pow=pow-1
+        pow -= 1
     return dlist
 
 def powersum(n,p,b=10):
@@ -175,10 +175,8 @@ def discrete_dynamics_digraph(nmax,f,itermax=50000):
 
 def collatz_problem_digraph(nmax):
     def f(n):
-        if n%2==0:
-            return n // 2
-        else:
-            return 3*n+1
+        return n // 2 if n%2==0 else 3*n+1
+
     return discrete_dynamics_digraph(nmax,f)
 
 def fixed_points(G):
@@ -196,4 +194,4 @@ if __name__ == "__main__":
           G.size()," edges")
     print("Shortest path from 177 to 153 is:")
     print(shortest_path(G,177,153))
-    print("fixed points are %s" % fixed_points(G))
+    print(f"fixed points are {fixed_points(G)}")

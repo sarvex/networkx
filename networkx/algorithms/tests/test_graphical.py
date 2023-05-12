@@ -6,7 +6,7 @@ import networkx as nx
 def test_valid_degree_sequence1():
     n = 100
     p = .3
-    for i in range(10):
+    for _ in range(10):
         G = nx.erdos_renyi_graph(n,p)
         deg = list(G.degree().values())
         assert_true( nx.is_valid_degree_sequence(deg, method='eg') )
@@ -14,7 +14,7 @@ def test_valid_degree_sequence1():
 
 def test_valid_degree_sequence2():
     n = 100
-    for i in range(10):
+    for _ in range(10):
         G = nx.barabasi_albert_graph(n,1)
         deg = list(G.degree().values())
         assert_true( nx.is_valid_degree_sequence(deg, method='eg') )

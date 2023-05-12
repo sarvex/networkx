@@ -130,10 +130,7 @@ def jaccard_coefficient(G, ebunch=None):
     def predict(u, v):
         cnbors = list(nx.common_neighbors(G, u, v))
         union_size = len(set(G[u]) | set(G[v]))
-        if union_size == 0:
-            return 0
-        else:
-            return len(cnbors) / union_size
+        return 0 if union_size == 0 else len(cnbors) / union_size
 
     return ((u, v, predict(u, v)) for u, v in ebunch)
 
@@ -491,8 +488,7 @@ def within_inter_cluster(G, ebunch=None, delta=0.001, community='community'):
         Cv = _community(G, v, community)
         if Cu == Cv:
             cnbors = set(nx.common_neighbors(G, u, v))
-            within = set(w for w in cnbors
-                         if _community(G, w, community) == Cu)
+            within = {w for w in cnbors if _community(G, w, community) == Cu}
             inter = cnbors - within
             return len(within) / (len(inter) + delta)
         else:

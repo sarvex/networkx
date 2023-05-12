@@ -5,8 +5,8 @@ from networkx.algorithms.components import biconnected
 from networkx import NetworkXNotImplemented
 
 def assert_components_equal(x,y):
-    sx = set((frozenset([frozenset(e) for e in c]) for c in x))
-    sy = set((frozenset([frozenset(e) for e in c]) for c in y))
+    sx = {frozenset(frozenset(e) for e in c) for c in x}
+    sy = {frozenset(frozenset(e) for e in c) for c in y}
     assert_equal(sx,sy)
 
 def test_barbell():
@@ -14,32 +14,34 @@ def test_barbell():
     G.add_path([7,20,21,22])
     G.add_cycle([22,23,24,25])
     pts=set(biconnected.articulation_points(G))
-    assert_equal(pts,set([7,8,9,10,11,12,20,21,22]))
+    assert_equal(pts, {7, 8, 9, 10, 11, 12, 20, 21, 22})
 
-    answer = [set([12, 13, 14, 15, 16, 17, 18, 19]),
-                set([0, 1, 2, 3, 4, 5, 6, 7]),
-                set([22, 23, 24, 25]),
-                set([11, 12]),
-                set([10, 11]),
-                set([9, 10]),
-                set([8, 9]),
-                set([7, 8]),
-                set([21, 22]),
-                set([20, 21]),
-                set([7, 20])]
+    answer = [
+        {12, 13, 14, 15, 16, 17, 18, 19},
+        {0, 1, 2, 3, 4, 5, 6, 7},
+        {22, 23, 24, 25},
+        {11, 12},
+        {10, 11},
+        {9, 10},
+        {8, 9},
+        {7, 8},
+        {21, 22},
+        {20, 21},
+        {7, 20},
+    ]
     bcc=list(biconnected.biconnected_components(G))
     bcc.sort(key=len, reverse=True)
     assert_equal(bcc,answer)
 
     G.add_edge(2,17)
     pts=set(biconnected.articulation_points(G))
-    assert_equal(pts,set([7,20,21,22]))
+    assert_equal(pts, {7, 20, 21, 22})
 
 def test_articulation_points_cycle():
     G=nx.cycle_graph(3)
     G.add_cycle([1,3,4])
     pts=set(biconnected.articulation_points(G))
-    assert_equal(pts,set([1]))
+    assert_equal(pts, {1})
 
 def test_is_biconnected():
     G=nx.cycle_graph(3)
@@ -57,7 +59,7 @@ def test_biconnected_components_cycle():
     G=nx.cycle_graph(3)
     G.add_cycle([1,3,4])
     pts = set(map(frozenset,biconnected.biconnected_components(G)))
-    assert_equal(pts,set([frozenset([0,1,2]),frozenset([1,3,4])]))
+    assert_equal(pts, {frozenset([0,1,2]), frozenset([1,3,4])})
 
 def test_biconnected_component_subgraphs_cycle():
     G=nx.cycle_graph(3)
@@ -76,7 +78,6 @@ def test_biconnected_component_subgraphs_cycle():
         assert_equal(g2.graph['gattr'],'green')
         g2[1][3]['eattr']='blue'
         assert_equal(g2[1][3]['eattr'],'blue')
-        assert_equal(G[1][3]['eattr'],'red')
     else:
         assert_true(nx.is_isomorphic(g1,nx.Graph([(1,3),(1,5),(3,4),(4,5)])))
         assert_true(nx.is_isomorphic(g2,nx.Graph([(0,1),(0,2),(1,2)])))
@@ -85,7 +86,8 @@ def test_biconnected_component_subgraphs_cycle():
         assert_equal(g1.graph['gattr'],'green')
         g1[1][3]['eattr']='blue'
         assert_equal(g1[1][3]['eattr'],'blue')
-        assert_equal(G[1][3]['eattr'],'red')
+
+    assert_equal(G[1][3]['eattr'],'red')
 
 
 def test_biconnected_components1():
@@ -117,7 +119,7 @@ def test_biconnected_components1():
            (12,13)]
     G=nx.Graph(edges)
     pts = set(biconnected.articulation_points(G))
-    assert_equal(pts,set([4,6,7,8,9]))
+    assert_equal(pts, {4, 6, 7, 8, 9})
     comps = list(biconnected.biconnected_component_edges(G))
     answer = [
         [(3,4),(15,3),(10,15),(10,4),(2,10),(4,2)],
@@ -155,10 +157,40 @@ def test_biconnected_davis():
 
 def test_biconnected_karate():
     K = nx.karate_club_graph()
-    answer = [set([0, 1, 2, 3, 7, 8, 9, 12, 13, 14, 15, 17, 18, 19,
-                20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]),
-                set([0, 4, 5, 6, 10, 16]),
-                set([0, 11])]
+    answer = [
+        {
+            0,
+            1,
+            2,
+            3,
+            7,
+            8,
+            9,
+            12,
+            13,
+            14,
+            15,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+        },
+        {0, 4, 5, 6, 10, 16},
+        {0, 11},
+    ]
     bcc = list(biconnected.biconnected_components(K))
     bcc.sort(key=len, reverse=True)
     assert_true(list(biconnected.biconnected_components(K)) == answer)
@@ -186,7 +218,7 @@ def test_biconnected_eppstein():
         8: [1,3,6]})
     assert_true(biconnected.is_biconnected(G1))
     assert_false(biconnected.is_biconnected(G2))
-    answer_G2 = [set([1, 3, 6, 8]), set([0, 2, 5]), set([2, 3]), set([4, 7])]
+    answer_G2 = [{1, 3, 6, 8}, {0, 2, 5}, {2, 3}, {4, 7}]
     bcc = list(biconnected.biconnected_components(G2))
     bcc.sort(key=len, reverse=True)
     assert_equal(bcc, answer_G2)

@@ -226,13 +226,10 @@ def edge_betweenness(G, k=None, normalized=True, weight=None, seed=None):
 
 def _single_source_shortest_path_basic(G, s):
     S = []
-    P = {}
-    for v in G:
-        P[v] = []
+    P = {v: [] for v in G}
     sigma = dict.fromkeys(G, 0.0)    # sigma[v]=0 for v in G
-    D = {}
     sigma[s] = 1.0
-    D[s] = 0
+    D = {s: 0}
     Q = [s]
     while Q:   # use BFS to find shortest paths
         v = Q.pop(0)
@@ -252,9 +249,7 @@ def _single_source_shortest_path_basic(G, s):
 def _single_source_dijkstra_path_basic(G, s, weight='weight'):
     # modified from Eppstein
     S = []
-    P = {}
-    for v in G:
-        P[v] = []
+    P = {v: [] for v in G}
     sigma = dict.fromkeys(G, 0.0)    # sigma[v]=0 for v in G
     D = {}
     sigma[s] = 1.0
@@ -327,16 +322,12 @@ def _accumulate_edges(betweenness, S, P, sigma, s):
 
 
 def _rescale(betweenness, n, normalized, directed=False, k=None):
-    if normalized is True:
-        if n <= 2:
-            scale = None  # no normalization b=0 for all nodes
-        else:
-            scale = 1.0 / ((n - 1) * (n - 2))
-    else:  # rescale by 2 for undirected graphs
-        if not directed:
-            scale = 1.0 / 2.0
-        else:
-            scale = None
+    if normalized is True and n <= 2 or normalized is not True and directed:
+        scale = None  # no normalization b=0 for all nodes
+    elif normalized is True:
+        scale = 1.0 / ((n - 1) * (n - 2))
+    else:
+        scale = 1.0 / 2.0
     if scale is not None:
         if k is not None:
             scale = scale * n / k
@@ -346,16 +337,12 @@ def _rescale(betweenness, n, normalized, directed=False, k=None):
 
 
 def _rescale_e(betweenness, n, normalized, directed=False, k=None):
-    if normalized is True:
-        if n <= 1:
-            scale = None  # no normalization b=0 for all nodes
-        else:
-            scale = 1.0 / (n * (n - 1))
-    else:  # rescale by 2 for undirected graphs
-        if not directed:
-            scale = 1.0 / 2.0
-        else:
-            scale = None
+    if normalized is True and n <= 1 or normalized is not True and directed:
+        scale = None  # no normalization b=0 for all nodes
+    elif normalized is True:
+        scale = 1.0 / (n * (n - 1))
+    else:
+        scale = 1.0 / 2.0
     if scale is not None:
         if k is not None:
             scale = scale * n / k

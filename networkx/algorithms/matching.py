@@ -116,6 +116,8 @@ def max_weight_matching(G, maxcardinality=False):
         """Dummy value which is different from any node."""
         pass
 
+
+
     class Blossom:
         """Representation of a non-trivial blossom or sub-blossom."""
 
@@ -137,10 +139,10 @@ def max_weight_matching(G, maxcardinality=False):
         def leaves(self):
             for t in self.childs:
                 if isinstance(t, Blossom):
-                    for v in t.leaves():
-                        yield v
+                    yield from t.leaves()
                 else:
                     yield t
+
 
     # Get a list of vertices.
     gnodes = G.nodes()
@@ -558,15 +560,10 @@ def max_weight_matching(G, maxcardinality=False):
 
     # Verify that the optimum solution has been reached.
     def verifyOptimum():
-        if maxcardinality:
-            # Vertices may have negative dual;
-            # find a constant non-negative number to add to all vertex duals.
-            vdualoffset = max(0, -min(dualvar.values()))
-        else:
-            vdualoffset = 0
+        vdualoffset = max(0, -min(dualvar.values())) if maxcardinality else 0
         # 0. all dual variables are non-negative
         assert min(dualvar.values()) + vdualoffset >= 0
-        assert len(blossomdual) == 0 or min(blossomdual.values()) >= 0
+        assert not blossomdual or min(blossomdual.values()) >= 0
         # 0. all edges have non-negative slack and
         # 1. all matched edges have zero slack;
         for i,j,d in G.edges_iter(data=True):
@@ -599,7 +596,8 @@ def max_weight_matching(G, maxcardinality=False):
                 assert len(b.edges) % 2 == 1
                 for (i, j) in b.edges[1::2]:
                     assert mate[i] == j and mate[j] == i
-        # Ok.
+            # Ok.
+
 
     # Main loop: continue until no further improvement is possible.
     while 1:

@@ -72,12 +72,9 @@ def incidence_matrix(G, nodelist=None, edgelist=None,
     if nodelist is None:
         nodelist = G.nodes()
     if edgelist is None:
-        if G.is_multigraph():
-            edgelist = G.edges(keys=True)
-        else:
-            edgelist = G.edges()
+        edgelist = G.edges(keys=True) if G.is_multigraph() else G.edges()
     A = scipy.sparse.lil_matrix((len(nodelist),len(edgelist)))
-    node_index = dict( (node,i) for i,node in enumerate(nodelist) )
+    node_index = {node: i for i,node in enumerate(nodelist)}
     for ei,e in enumerate(edgelist):
         (u,v) = e[:2]
         if u == v: continue  # self loops give zero column
@@ -89,18 +86,12 @@ def incidence_matrix(G, nodelist=None, edgelist=None,
                                 'but not in nodelist"%(u,v)')
         if weight is None:
             wt = 1
+        elif G.is_multigraph():
+            wt = G[u][v][e[2]].get(weight, 1)
         else:
-            if G.is_multigraph():
-                ekey = e[2]
-                wt = G[u][v][ekey].get(weight,1)
-            else:
-                wt = G[u][v].get(weight,1)
-        if oriented:
-            A[ui,ei] = -wt
-            A[vi,ei] = wt
-        else:
-            A[ui,ei] = wt
-            A[vi,ei] = wt
+            wt = G[u][v].get(weight,1)
+        A[ui,ei] = -wt if oriented else wt
+        A[vi,ei] = wt
     return A.asformat('csc')
 
 def adjacency_matrix(G, nodelist=None, weight='weight'):

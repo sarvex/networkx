@@ -151,7 +151,7 @@ class TestFunction(object):
         node = random.sample(graph.nodes(), 1)[0]
         nbors = list(nx.neighbors(graph, node))
         # should be all the other vertices in the graph
-        if node != 0 and node != 99:
+        if node not in [0, 99]:
             assert_equal(len(nbors), 2)
         else:
             assert_equal(len(nbors), 1)
@@ -172,7 +172,7 @@ class TestFunction(object):
         node = random.sample(graph.nodes(), 1)[0]
         nbors = list(nx.non_neighbors(graph, node))
         # should be all the other vertices in the graph
-        if node != 0 and node != 99:
+        if node not in [0, 99]:
             assert_equal(len(nbors), 97)
         else:
             assert_equal(len(nbors), 98)
@@ -335,17 +335,14 @@ def test_get_node_attributes():
 
 def test_get_edge_attributes():
     graphs = [nx.Graph(), nx.DiGraph(), nx.MultiGraph(), nx.MultiDiGraph()]
+    attr = 'hello'
+    vals = 100
     for G in graphs:
         G = nx.path_graph(3, create_using=G)
-        attr = 'hello'
-        vals = 100
         nx.set_edge_attributes(G, attr, vals)
         attrs = nx.get_edge_attributes(G, attr)
 
         assert_equal(len(attrs), 2)
-        if G.is_multigraph():
-            keys = [(0,1,0), (1,2,0)]
-        else:
-            keys = [(0,1), (1,2)]
+        keys = [(0,1,0), (1,2,0)] if G.is_multigraph() else [(0,1), (1,2)]
         for key in keys:
             assert_equal(attrs[key], 100)

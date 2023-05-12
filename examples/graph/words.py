@@ -31,13 +31,14 @@ import networkx as nx
 def generate_graph(words):
     from string import ascii_lowercase as lowercase
     G = nx.Graph(name="words")
-    lookup = dict((c,lowercase.index(c)) for c in lowercase)
+    lookup = {c: lowercase.index(c) for c in lowercase}
     def edit_distance_one(word):
         for i in range(len(word)):
-            left, c, right = word[0:i], word[i], word[i+1:]
+            left, c, right = word[:i], word[i], word[i+1:]
             j = lookup[c] # lowercase.index(c)
             for cc in lowercase[j+1:]:
                 yield left + cc + right
+
     candgen = ((word, cand) for word in sorted(words) 
                for cand in edit_distance_one(word) if cand in words)
     G.add_nodes_from(words)
@@ -54,7 +55,7 @@ def words_graph():
         line = line.decode()
         if line.startswith('*'):
             continue
-        w=str(line[0:5])
+        w = str(line[:5])
         words.add(w)
     return generate_graph(words)
 
@@ -70,7 +71,7 @@ if __name__ == '__main__':
     for (source,target) in [('chaos','order'),
                             ('nodes','graph'),
                             ('pound','marks')]:
-        print("Shortest path between %s and %s is"%(source,target))
+        print(f"Shortest path between {source} and {target} is")
         try:
             sp=shortest_path(G, source, target)
             for n in sp:

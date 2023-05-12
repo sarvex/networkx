@@ -396,24 +396,23 @@ class MultiGraph(Graph):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dictionary.")
+                        "The attr_dict argument must be a dictionary.")
         # process ebunch
         for e in ebunch:
             ne=len(e)
-            if ne==4:
-                u,v,key,dd = e
-            elif ne==3:
-                u,v,dd = e
-                key=None
-            elif ne==2:
+            if ne == 2:
                 u,v = e
                 dd = {}
                 key=None
+            elif ne == 3:
+                u,v,dd = e
+                key=None
+            elif ne == 4:
+                u,v,key,dd = e
             else:
-                raise NetworkXError(\
-                    "Edge tuple %s must be a 2-tuple, 3-tuple or 4-tuple."%(e,))
+                raise NetworkXError(f"Edge tuple {e} must be a 2-tuple, 3-tuple or 4-tuple.")
             ddd={}
-            ddd.update(attr_dict)
+            ddd |= attr_dict
             ddd.update(dd)
             self.add_edge(u, v, key, ddd)
 
@@ -463,18 +462,16 @@ class MultiGraph(Graph):
         """
         try:
             d=self.adj[u][v]
-        except (KeyError):
-            raise NetworkXError(
-                "The edge %s-%s is not in the graph."%(u,v))
+        except KeyError:
+            raise NetworkXError(f"The edge {u}-{v} is not in the graph.")
         # remove the edge with specified data
         if key is None:
             d.popitem()
         else:
             try:
                 del d[key]
-            except (KeyError):
-                raise NetworkXError(
-                "The edge %s-%s with key %s is not in the graph."%(u,v,key))
+            except KeyError:
+                raise NetworkXError(f"The edge {u}-{v} with key {key} is not in the graph.")
         if len(d)==0:
             # remove the key entries if last edge
             del self.adj[u][v]
@@ -575,10 +572,7 @@ class MultiGraph(Graph):
 
         """
         try:
-            if key is None:
-                return v in self.adj[u]
-            else:
-                return key in self.adj[u][v]
+            return v in self.adj[u] if key is None else key in self.adj[u][v]
         except KeyError:
             return False
 
@@ -773,10 +767,7 @@ class MultiGraph(Graph):
         0
         """
         try:
-            if key is None:
-                return self.adj[u][v]
-            else:
-                return self.adj[u][v][key]
+            return self.adj[u][v] if key is None else self.adj[u][v][key]
         except KeyError:
             return default
 
@@ -822,17 +813,14 @@ class MultiGraph(Graph):
 
         if weight is None:
             for n,nbrs in nodes_nbrs:
-                deg = sum([len(data) for data in nbrs.values()])
+                deg = sum(len(data) for data in nbrs.values())
                 yield (n, deg+(n in nbrs and len(nbrs[n])))
         else:
         # edge weighted graph - degree is sum of nbr edge weights
             for n,nbrs in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in nbrs.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in nbrs.values() for d in data.values())
                 if n in nbrs:
-                    deg += sum([d.get(weight,1)
-                           for key,d in nbrs[n].items()])
+                    deg += sum(d.get(weight,1) for key,d in nbrs[n].items())
                 yield (n, deg)
 
 
@@ -941,14 +929,21 @@ class MultiGraph(Graph):
         [(1, 1, 0, {})]
         """
         if data is True:
-            if keys:
-                return [ (n,n,k,d)
-                         for n,nbrs in self.adj.items()
-                         if n in nbrs for k,d in nbrs[n].items()]
-            else:
-                return [ (n,n,d)
-                         for n,nbrs in self.adj.items()
-                         if n in nbrs for d in nbrs[n].values()]
+            return (
+                [
+                    (n, n, k, d)
+                    for n, nbrs in self.adj.items()
+                    if n in nbrs
+                    for k, d in nbrs[n].items()
+                ]
+                if keys
+                else [
+                    (n, n, d)
+                    for n, nbrs in self.adj.items()
+                    if n in nbrs
+                    for d in nbrs[n].values()
+                ]
+            )
         elif data is not False:
             if keys:
                 return [ (n,n,k,d.get(data,default))
@@ -958,15 +953,14 @@ class MultiGraph(Graph):
                 return [ (n,n,d.get(data,default))
                          for n,nbrs in self.adj.items()
                          if n in nbrs for d in nbrs[n].values()]
+        elif keys:
+            return [ (n,n,k)
+                 for n,nbrs in self.adj.items()
+                 if n in nbrs for k in nbrs[n].keys()]
         else:
-            if keys:
-                return [ (n,n,k)
-                     for n,nbrs in self.adj.items()
-                     if n in nbrs for k in nbrs[n].keys()]
-            else:
-                return [ (n,n)
-                     for n,nbrs in self.adj.items()
-                     if n in nbrs for d in nbrs[n].values()]
+            return [ (n,n)
+                 for n,nbrs in self.adj.items()
+                 if n in nbrs for d in nbrs[n].values()]
 
 
     def number_of_edges(self, u=None, v=None):

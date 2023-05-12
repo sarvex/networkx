@@ -52,7 +52,7 @@ def caveman_graph(l, k):
     """
     # l disjoint cliques of size k
     G = nx.empty_graph(l*k)
-    G.name = "caveman_graph(%s,%s)" % (l*k, k)
+    G.name = f"caveman_graph({l * k},{k})"
     if k > 1:
         for start in range(0, l*k, k):
             edges = itertools.combinations(range(start, start+k), 2)
@@ -98,7 +98,7 @@ def connected_caveman_graph(l, k):
        Amer. J. Soc. 105, 493-527, 1999.
     """
     G = nx.caveman_graph(l, k)
-    G.name = "connected_caveman_graph(%s,%s)" % (l, k)
+    G.name = f"connected_caveman_graph({l},{k})"
     for start in range(0, l*k, k):
         G.remove_edge(start, start+1)
         G.add_edge(start, (start-1) % (l*k))
@@ -145,11 +145,11 @@ def relaxed_caveman_graph(l, k, p, seed=None, directed=False):
        Physics Reports Volume 486, Issues 3-5, February 2010, Pages 75-174.
        http://arxiv.org/abs/0906.0612
     """
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
     G = nx.caveman_graph(l, k)
     nodes = G.nodes()
-    G.name = "relaxed_caveman_graph (%s,%s,%s)" % (l, k, p)
+    G.name = f"relaxed_caveman_graph ({l},{k},{p})"
     for (u, v) in G.edges():
         if random.random() < p:  # rewire the edge
             x = random.choice(nodes)
@@ -215,17 +215,14 @@ def random_partition_graph(sizes, p_in, p_out, seed=None, directed=False):
        """
     # Use geometric method for O(n+m) complexity algorithm
     # partition=nx.community_sets(nx.get_node_attributes(G,'affiliation'))
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
     if not 0.0 <= p_in <= 1.0:
         raise nx.NetworkXError("p_in must be in [0,1]")
     if not 0.0 <= p_out <= 1.0:
         raise nx.NetworkXError("p_out must be in [0,1]")
 
-    if directed:
-        G = nx.DiGraph()
-    else:
-        G = nx.Graph()
+    G = nx.DiGraph() if directed else nx.Graph()
     G.graph['partition'] = []
     n = sum(sizes)
     G.add_nodes_from(range(n))
@@ -234,15 +231,13 @@ def random_partition_graph(sizes, p_in, p_out, seed=None, directed=False):
     # 0, sizes[0], sizes[0]+sizes[1], ...
     next_group = {}  # maps node key (int) to first node in next group
     start = 0
-    group = 0
     for n in sizes:
         edges = ((u+start, v+start)
                  for u, v in
                  nx.fast_gnp_random_graph(n, p_in, directed=directed).edges())
         G.add_edges_from(edges)
-        next_group.update(dict.fromkeys(range(start, start+n), start+n))
+        next_group |= dict.fromkeys(range(start, start+n), start+n)
         G.graph['partition'].append(set(range(start, start+n)))
-        group += 1
         start += n
     # handle edge cases
     if p_out == 0:

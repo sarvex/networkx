@@ -47,11 +47,7 @@ def could_be_isomorphic(G1,G2):
     props2=[ [d2[v], t2[v], c2[v]] for v in d2 ]
     props2.sort()
 
-    if props1 != props2:
-        return False
-
-    # OK...
-    return True
+    return props1 == props2
 
 graph_could_be_isomorphic=could_be_isomorphic
 
@@ -83,10 +79,7 @@ def fast_could_be_isomorphic(G1,G2):
     props2=[ [d2[v], t2[v]] for v in d2 ]
     props2.sort()
 
-    if props1 != props2: return False
-
-    # OK...
-    return True
+    return props1 == props2
 
 fast_graph_could_be_isomorphic=fast_could_be_isomorphic
 
@@ -107,16 +100,9 @@ def faster_could_be_isomorphic(G1,G2):
     # Check global properties
     if G1.order() != G2.order(): return False
 
-    # Check local properties
-    d1=list(G1.degree().values())
-    d1.sort()
-    d2=list(G2.degree().values())
-    d2.sort()
-
-    if d1 != d2: return False
-
-    # OK...
-    return True
+    d1 = sorted(G1.degree().values())
+    d2 = sorted(G2.degree().values())
+    return d1 == d2
 
 faster_graph_could_be_isomorphic=faster_could_be_isomorphic
 

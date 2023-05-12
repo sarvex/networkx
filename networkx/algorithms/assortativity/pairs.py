@@ -40,11 +40,8 @@ def node_attribute_xy(G, attribute, nodes=None):
     representation (u,v) and (v,u), with the exception of self-loop edges 
     which only appear once.
     """
-    if nodes is None:
-        nodes = set(G)
-    else:
-        nodes = set(nodes)
-    node = G.node 
+    nodes = set(G) if nodes is None else set(nodes)
+    node = G.node
     for u,nbrsdict in G.adjacency_iter():
         if u not in nodes:
             continue
@@ -103,10 +100,7 @@ def node_degree_xy(G, x='out', y='in', weight=None, nodes=None):
     representation (u,v) and (v,u), with the exception of self-loop edges 
     which only appear once.
     """
-    if nodes is None:
-        nodes = set(G)
-    else:
-        nodes = set(nodes)
+    nodes = set(G) if nodes is None else set(nodes)
     xdeg = G.degree_iter
     ydeg = G.degree_iter
     if G.is_directed():

@@ -106,7 +106,7 @@ def configuration_model(deg_sequence,create_using=None,seed=None):
 
     >>> G.remove_edges_from(G.selfloop_edges())
     """
-    if not sum(deg_sequence)%2 ==0:
+    if sum(deg_sequence) % 2 != 0:
         raise nx.NetworkXError('Invalid degree sequence')
 
     if create_using is None:
@@ -114,7 +114,7 @@ def configuration_model(deg_sequence,create_using=None,seed=None):
     elif create_using.is_directed():
         raise nx.NetworkXError("Directed Graph not supported")
 
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
 
     # start with empty N-node graph
@@ -132,9 +132,7 @@ def configuration_model(deg_sequence,create_using=None,seed=None):
     # i.e., node 1 has degree=3 and is repeated 3 times, etc.
     stublist=[]
     for n in G:
-        for i in range(deg_sequence[n]):
-            stublist.append(n)
-
+        stublist.extend(n for _ in range(deg_sequence[n]))
     # shuffle stublist and assign pairs by removing 2 elements at a time
     random.shuffle(stublist)
     while stublist:
@@ -220,14 +218,14 @@ def directed_configuration_model(in_degree_sequence,
 
     >>> D.remove_edges_from(D.selfloop_edges())
     """
-    if not sum(in_degree_sequence) == sum(out_degree_sequence):
+    if sum(in_degree_sequence) != sum(out_degree_sequence):
         raise nx.NetworkXError('Invalid degree sequences. '
                                'Sequences must have equal sums.')
 
     if create_using is None:
         create_using = nx.MultiDiGraph()
 
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
 
     nin=len(in_degree_sequence)
@@ -254,14 +252,10 @@ def directed_configuration_model(in_degree_sequence,
     # i.e., node 1 has degree=3 and is repeated 3 times, etc.
     in_stublist=[]
     for n in G:
-        for i in range(in_degree_sequence[n]):
-            in_stublist.append(n)
-
+        in_stublist.extend(n for _ in range(in_degree_sequence[n]))
     out_stublist=[]
     for n in G:
-        for i in range(out_degree_sequence[n]):
-            out_stublist.append(n)
-
+        out_stublist.extend(n for _ in range(out_degree_sequence[n]))
     # shuffle stublists and assign pairs by removing 2 elements at a time
     random.shuffle(in_stublist)
     random.shuffle(out_stublist)
@@ -355,7 +349,7 @@ def expected_degree_graph(w, seed=None, selfloops=True):
     # sort weights, largest first
     # preserve order of weights for integer node label mapping
     order = sorted(enumerate(w),key=itemgetter(1),reverse=True)
-    mapping = dict((c,uv[0]) for c,uv in enumerate(order))
+    mapping = {c: uv[0] for c,uv in enumerate(order)}
     seq = [v for u,v in order]
     last=n
     if not selfloops:
@@ -366,16 +360,14 @@ def expected_degree_graph(w, seed=None, selfloops=True):
             v += 1
         factor = seq[u] * rho
         p = seq[v]*factor
-        if p>1:
-            p = 1
+        p = min(p, 1)
         while v<n and p>0:
             if p != 1:
                 r = random.random()
                 v += int(math.floor(math.log(r)/math.log(1-p)))
             if v < n:
                 q = seq[v]*factor
-                if q>1:
-                    q = 1
+                q = min(q, 1)
                 if random.random() < q/p:
                     G.add_edge(mapping[u],mapping[v])
                 v += 1
@@ -423,15 +415,12 @@ def havel_hakimi_graph(deg_sequence,create_using=None):
     """
     if not nx.is_valid_degree_sequence(deg_sequence):
         raise nx.NetworkXError('Invalid degree sequence')
-    if create_using is not None:
-        if create_using.is_directed():
-            raise nx.NetworkXError("Directed graphs are not supported")
+    if create_using is not None and create_using.is_directed():
+        raise nx.NetworkXError("Directed graphs are not supported")
 
     p = len(deg_sequence)
     G=nx.empty_graph(p,create_using)
-    num_degs = []
-    for i in range(p):
-        num_degs.append([])
+    num_degs = [[] for _ in range(p)]
     dmax, dsum, n = 0, 0, 0
     for d in deg_sequence:
         # Process only the non-zero integers
@@ -459,7 +448,7 @@ def havel_hakimi_graph(deg_sequence,create_using=None):
         # Reduce the next dmax largest stubs
         mslen = 0
         k = dmax
-        for i in range(dmax):
+        for _ in range(k):
             while len(num_degs[k]) == 0:
                 k -= 1
             target = num_degs[k].pop()
@@ -526,7 +515,7 @@ def directed_havel_hakimi_graph(in_deg_sequence,
     # Process the sequences and form two heaps to store degree pairs with
     # either zero or nonzero out degrees
     sumin, sumout, nin, nout = 0, 0, len(in_deg_sequence), len(out_deg_sequence)
-    maxn = max(nin, nout) 
+    maxn = max(nin, nout)
     G = nx.empty_graph(maxn,create_using)
     if maxn==0:
         return G
@@ -545,7 +534,7 @@ def directed_havel_hakimi_graph(in_deg_sequence,
         if in_deg > 0:
             stubheap.append((-1*out_deg, -1*in_deg,n)) 
         elif out_deg > 0:
-            zeroheap.append((-1*out_deg,n)) 
+            zeroheap.append((-1*out_deg,n))
     if sumin != sumout:
         raise nx.NetworkXError(
             'Invalid degree sequences. Sequences must have equal sums.')
@@ -553,17 +542,17 @@ def directed_havel_hakimi_graph(in_deg_sequence,
     heapq.heapify(zeroheap)
 
     modstubs = [(0,0,0)]*(maxin+1)
-    # Successively reduce degree sequence by removing the maximum 
+    # Successively reduce degree sequence by removing the maximum
     while stubheap:
         # Remove first value in the sequence with a non-zero in degree
         (freeout, freein, target) =  heapq.heappop(stubheap)
-        freein *= -1   
+        freein *= -1
         if freein > len(stubheap)+len(zeroheap):
             raise nx.NetworkXError('Non-digraphical integer sequence')
 
         # Attach arcs from the nodes with the most stubs
         mslen = 0
-        for i in range(freein):
+        for _ in range(freein):
             if zeroheap and (not stubheap or stubheap[0][0] > zeroheap[0][0]):
                 (stubout, stubsource) = heapq.heappop(zeroheap)
                 stubin = 0
@@ -573,7 +562,7 @@ def directed_havel_hakimi_graph(in_deg_sequence,
                 raise nx.NetworkXError('Non-digraphical integer sequence')
             G.add_edge(stubsource, target)
             # Check if source is now totally connected
-            if stubout+1<0 or stubin<0:
+            if stubout < -1 or stubin < 0:
                 modstubs[mslen] = (stubout+1, stubin, stubsource)
                 mslen += 1
 
@@ -598,16 +587,14 @@ def degree_sequence_tree(deg_sequence,create_using=None):
     len(deg_sequence)-sum(deg_sequence)/2=1
     """
 
-    if not len(deg_sequence)-sum(deg_sequence)/2.0 == 1.0:
+    if len(deg_sequence) - sum(deg_sequence) / 2.0 != 1.0:
         raise nx.NetworkXError("Degree sequence invalid")
     if create_using is not None and create_using.is_directed():
         raise nx.NetworkXError("Directed Graph not supported")
 
     # single node tree
     if len(deg_sequence)==1:
-        G=nx.empty_graph(0,create_using)
-        return G
-
+        return nx.empty_graph(0,create_using)
     # all degrees greater than 1
     deg=[s for s in deg_sequence if s>1]
     deg.sort(reverse=True)
@@ -617,8 +604,7 @@ def degree_sequence_tree(deg_sequence,create_using=None):
     G=nx.path_graph(n,create_using)
     last=n
 
-    # add the leaves
-    for source in range(1,n-1):
+    for source in range(1, last - 1):
         nedges=deg.pop()-2
         for target in range(last,last+nedges):
             G.add_edge(source, target)
@@ -682,7 +668,7 @@ def random_degree_sequence_graph(sequence, seed=None, tries=10):
     [1, 2, 2, 3]
     """
     DSRG = DegreeSequenceRandomGraph(sequence, seed=seed)
-    for try_n in range(tries):
+    for _ in range(tries):
         try:
             return DSRG.generate()
         except nx.NetworkXUnfeasible:
@@ -715,7 +701,7 @@ class DegreeSequenceRandomGraph(object):
         for n,d in list(self.remaining_degree.items()):
             if d == 0:
                 del self.remaining_degree[n]
-        if len(self.remaining_degree) > 0:
+        if self.remaining_degree:
         # build graph in three phases according to how many unmatched edges
             self.phase1()
             self.phase2()
@@ -755,10 +741,7 @@ class DegreeSequenceRandomGraph(object):
         # connection to another remaining node
         nodes = iter(self.remaining_degree)
         u = next(nodes) # one arbitrary node
-        for v in nodes: # loop over all other remaining nodes
-            if not self.graph.has_edge(u, v):
-                return True
-        return False
+        return any(not self.graph.has_edge(u, v) for v in nodes)
 
     def phase1(self):
         # choose node pairs from (degree) weighted distribution

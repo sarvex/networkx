@@ -47,11 +47,7 @@ if __name__ == '__main__':
     except:
         pass
 
-    if len(sys.argv)==1:
-        filePath = "unix_email.mbox"
-    else:
-        filePath = sys.argv[1]
-
+    filePath = "unix_email.mbox" if len(sys.argv)==1 else sys.argv[1]
     mbox = mailbox.mbox(filePath, msgfactory) # parse unix mailbox
 
     G=nx.MultiDiGraph() # create empty graph
@@ -72,8 +68,8 @@ if __name__ == '__main__':
 
     # print edges with message subject
     for (u,v,d) in G.edges_iter(data=True):
-        print("From: %s To: %s Subject: %s"%(u,v,d['message']["Subject"]))
-    
+        print(f"""From: {u} To: {v} Subject: {d['message']["Subject"]}""")
+            
 
     try: # draw
         pos=nx.spring_layout(G,iterations=10)

@@ -118,8 +118,7 @@ def to_pandas_dataframe(G, nodelist=None, multigraph_weight=sum, weight='weight'
     if nodelist is None:
         nodelist = G.nodes()
     nodeset = set(nodelist)
-    df = pd.DataFrame(data=M, index = nodelist ,columns = nodelist)
-    return df
+    return pd.DataFrame(data=M, index = nodelist ,columns = nodelist)
 
 def from_pandas_dataframe(df,create_using=None):
     """Return a graph from Pandas DataFrame.
@@ -162,8 +161,10 @@ def from_pandas_dataframe(df,create_using=None):
     try:
         df = df[df.index]
     except:
-        raise nx.NetworkXError("Columns must match Indices.",
-                               "%s not in columns"%list(set(df.index).difference(set(df.columns))))
+        raise nx.NetworkXError(
+            "Columns must match Indices.",
+            f"{list(set(df.index).difference(set(df.columns)))} not in columns",
+        )
     nx.relabel.relabel_nodes(G, dict(enumerate(df.columns)), copy=False)
     return G
 
@@ -433,13 +434,12 @@ def from_numpy_matrix(A, parallel_edges=False, create_using=None):
     G=_prep_create_using(create_using)
     n,m=A.shape
     if n!=m:
-        raise nx.NetworkXError("Adjacency matrix is not square.",
-                               "nx,ny=%s"%(A.shape,))
+        raise nx.NetworkXError("Adjacency matrix is not square.", f"nx,ny={A.shape}")
     dt=A.dtype
     try:
         python_type=kind_to_python_type[dt.kind]
     except:
-        raise TypeError("Unknown numpy data type: %s"%dt)
+        raise TypeError(f"Unknown numpy data type: {dt}")
 
     # Make sure we get even the isolated nodes of the graph.
     G.add_nodes_from(range(n))
@@ -454,11 +454,6 @@ def from_numpy_matrix(A, parallel_edges=False, create_using=None):
         triples = ((u, v, {name: kind_to_python_type[dtype.kind](val)
                            for (_, dtype, name), val in zip(fields, A[u, v])})
                    for u, v in edges)
-    # If the entries in the adjacency matrix are integers, the graph is a
-    # multigraph, and parallel_edges is True, then create parallel edges, each
-    # with weight 1, for each entry in the adjacency matrix. Otherwise, create
-    # one edge for each positive entry in the adjacency matrix and set the
-    # weight of that edge to be the entry in the matrix.
     elif python_type is int and G.is_multigraph() and parallel_edges:
         chain = itertools.chain.from_iterable
         # The following line is equivalent to:
@@ -467,8 +462,10 @@ def from_numpy_matrix(A, parallel_edges=False, create_using=None):
         #         for d in range(A[u, v]):
         #             G.add_edge(u, v, weight=1)
         #
-        triples = chain(((u, v, dict(weight=1)) for d in range(A[u, v]))
-                        for (u, v) in edges)
+        triples = chain(
+            ((u, v, dict(weight=1)) for _ in range(A[u, v]))
+            for (u, v) in edges
+        )
     else:  # basic data type
         triples = ((u, v, dict(weight=python_type(A[u, v])))
                    for u, v in edges)
@@ -549,7 +546,7 @@ def to_numpy_recarray(G,nodelist=None,
     for u,v,attrs in G.edges_iter(data=True):
         if (u in nodeset) and (v in nodeset):
             i,j = index[u],index[v]
-            values=tuple([attrs[n] for n in names])
+            values = tuple(attrs[n] for n in names)
             M[i,j] = values
             if undirected:
                 M[j,i] = M[i,j]
@@ -661,10 +658,7 @@ def to_scipy_sparse_matrix(G, nodelist=None, dtype=None,
         d = data + data
         r = row + col
         c = col + row
-        # selfloop entries get double counted when symmetrizing
-        # so we subtract the data on the diagonal
-        selfloops = G.selfloop_edges(data=True)
-        if selfloops:
+        if selfloops := G.selfloop_edges(data=True):
             diag_index,diag_data = zip(*((index[u],-d.get(weight,1))
                                          for u,v,d in selfloops
                                          if u in index and v in index))
@@ -675,7 +669,7 @@ def to_scipy_sparse_matrix(G, nodelist=None, dtype=None,
     try:
         return M.asformat(format)
     except AttributeError:
-        raise nx.NetworkXError("Unknown sparse matrix format: %s"%format)
+        raise nx.NetworkXError(f"Unknown sparse matrix format: {format}")
 
 
 def _csr_gen_triples(A):
@@ -805,8 +799,7 @@ def from_scipy_sparse_matrix(A, parallel_edges=False, create_using=None,
     G = _prep_create_using(create_using)
     n,m = A.shape
     if n != m:
-        raise nx.NetworkXError(\
-              "Adjacency matrix is not square. nx,ny=%s"%(A.shape,))
+        raise nx.NetworkXError(f"Adjacency matrix is not square. nx,ny={A.shape}")
     # Make sure we get even the isolated nodes of the graph.
     G.add_nodes_from(range(n))
     # Create an iterable over (u, v, w) triples and for each triple, add an
@@ -825,7 +818,7 @@ def from_scipy_sparse_matrix(A, parallel_edges=False, create_using=None,
         #         for d in range(A[u, v]):
         #             G.add_edge(u, v, weight=1)
         #
-        triples = chain(((u, v, 1) for d in range(w)) for (u, v, w) in triples)
+        triples = chain(((u, v, 1) for _ in range(w)) for (u, v, w) in triples)
     # If we are creating an undirected multigraph, only add the edges from the
     # upper triangle of the matrix. Otherwise, add all the edges. This relies
     # on the fact that the vertices created in the

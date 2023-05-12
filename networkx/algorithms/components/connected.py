@@ -55,7 +55,7 @@ def connected_components(G):
         if v not in seen:
             c = sp_length(G, v)
             yield list(c)
-            seen.update(c)
+            seen |= c
 
 @not_implemented_for('directed')
 def connected_component_subgraphs(G, copy=True):

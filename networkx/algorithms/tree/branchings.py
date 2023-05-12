@@ -8,6 +8,7 @@ This implementation is based on:
     233–240. URL: http://archive.org/details/jresv71Bn4p233
 
 """
+
 # TODO: Implement method from Gabow, Galil, Spence and Tarjan:
 #
 #@article{
@@ -46,7 +47,7 @@ __all__ = [
     'Edmonds'
 ]
 
-KINDS = set(['max', 'min'])
+KINDS = {'max', 'min'}
 
 STYLES = {
     'branching': 'branching',
@@ -124,7 +125,7 @@ def edge_subgraph(G, ebunch):
 
 def random_string(L=15, seed=None):
     random.seed(seed)
-    return ''.join([random.choice(string.ascii_letters) for n in range(L)])
+    return ''.join([random.choice(string.ascii_letters) for _ in range(L)])
 
 def _min_weight(weight):
     return -weight
@@ -172,11 +173,7 @@ def greedy_branching(G, attr='weight', default=1, kind='max'):
     if kind not in KINDS:
         raise nx.NetworkXException("Unknown value for `kind`.")
 
-    if kind == 'min':
-        reverse = False
-    else:
-        reverse = True
-
+    reverse = kind != 'min'
     if attr is None:
         # Generate a random string the graph probably won't have.
         attr = random_string()
@@ -198,14 +195,8 @@ def greedy_branching(G, attr='weight', default=1, kind='max'):
 
     # Now we add edges greedily so long we maintain the branching.
     uf = nx.utils.UnionFind()
-    for i, (u, v, w) in enumerate(edges):
-        if uf[u] == uf[v]:
-            # Adding this edge would form a directed cycle.
-            continue
-        elif B.in_degree(v) == 1:
-            # The edge would increase the degree to be greater than one.
-            continue
-        else:
+    for u, v, w in edges:
+        if uf[u] != uf[v] and (uf[u] == uf[v] or B.in_degree(v) != 1):
             # If attr was None, then don't insert weights...
             data = {}
             if attr is not None:
@@ -463,111 +454,101 @@ class Edmonds(object):
             B.add_node(v)
 
             edge, weight = desired_edge(v)
-            #print("Max edge is {0!r}".format(edge))
             if edge is None:
                 # If there is no edge, continue with a new node at (I1).
                 continue
-            else:
-                # Determine if adding the edge to E^i would mean its no longer
-                # a branching. Presently, v has indegree 0 in B---it is a root.
-                u = edge[0]
+            # Determine if adding the edge to E^i would mean its no longer
+            # a branching. Presently, v has indegree 0 in B---it is a root.
+            u = edge[0]
 
-                if uf[u] == uf[v]:
-                    # Then adding the edge will create a circuit. Then B
-                    # contains a unique path P from v to u. So condition (a)
-                    # from the paper does hold. We need to store the circuit
-                    # for future reference.
-                    Q_nodes, Q_edges = get_path(B, v, u)
-                    Q_edges.append(edge[2])
-                else:
-                    # Then B with the edge is still a branching and condition
-                    # (a) from the paper does not hold.
-                    Q_nodes, Q_edges = None, None
+            if uf[u] == uf[v]:
+                # Then adding the edge will create a circuit. Then B
+                # contains a unique path P from v to u. So condition (a)
+                # from the paper does hold. We need to store the circuit
+                # for future reference.
+                Q_nodes, Q_edges = get_path(B, v, u)
+                Q_edges.append(edge[2])
+            else:
+                # Then B with the edge is still a branching and condition
+                # (a) from the paper does not hold.
+                Q_nodes, Q_edges = None, None
 
                 # Conditions for adding the edge.
                 # If weight < 0, then it cannot help in finding a maximum branching.
-                if self.style == 'branching' and weight <= 0:
-                    acceptable = False
-                else:
-                    acceptable = True
-
+            acceptable = self.style != 'branching' or weight > 0
                 #print("Edge is acceptable: {0}".format(acceptable))
-                if acceptable:
-                    dd = {attr: weight}
-                    B.add_edge(u, v, key=edge[2], **dd)
-                    G[u][v][edge[2]]['candidate'] = True
-                    uf.union(u, v)
-                    if Q_edges is not None:
-                        #print("Edge introduced a simple cycle:")
-                        #print(Q_nodes, Q_edges)
+            if acceptable:
+                dd = {attr: weight}
+                B.add_edge(u, v, key=edge[2], **dd)
+                G[u][v][edge[2]]['candidate'] = True
+                uf.union(u, v)
+                if Q_edges is not None:
+                    #print("Edge introduced a simple cycle:")
+                    #print(Q_nodes, Q_edges)
 
-                        # Move to method
-                        # Previous meaning of u and v is no longer important.
+                    # Move to method
+                    # Previous meaning of u and v is no longer important.
 
-                        # Apply (I2).
-                        # Get the edge in the cycle with the minimum weight.
-                        # Also, save the incoming weights for each node.
-                        minweight = INF
-                        minedge = None
-                        Q_incoming_weight = {}
-                        for edge_key in Q_edges:
-                            u, v, data = B.edge_index[edge_key]
-                            w = data[attr]
-                            Q_incoming_weight[v] = w
-                            if  w < minweight:
-                                minweight = w
-                                minedge = edge_key
+                    # Apply (I2).
+                    # Get the edge in the cycle with the minimum weight.
+                    # Also, save the incoming weights for each node.
+                    minweight = INF
+                    minedge = None
+                    Q_incoming_weight = {}
+                    for edge_key in Q_edges:
+                        u, v, data = B.edge_index[edge_key]
+                        w = data[attr]
+                        Q_incoming_weight[v] = w
+                        if  w < minweight:
+                            minweight = w
+                            minedge = edge_key
 
-                        self.circuits.append(Q_edges)
-                        self.minedge_circuit.append(minedge)
+                    self.circuits.append(Q_edges)
+                    self.minedge_circuit.append(minedge)
 
-                        if self.store:
-                            self.graphs.append(G.copy())
-                        # Always need the branching with circuits.
-                        self.branchings.append(B.copy())
+                    if self.store:
+                        self.graphs.append(G.copy())
+                    # Always need the branching with circuits.
+                    self.branchings.append(B.copy())
 
-                        # Now we mutate it.
-                        new_node = self.template.format(self.level)
+                    # Now we mutate it.
+                    new_node = self.template.format(self.level)
 
-                        #print(minweight, minedge, Q_incoming_weight)
+                    #print(minweight, minedge, Q_incoming_weight)
 
-                        G.add_node(new_node)
-                        new_edges = []
-                        for u, v, key, data in G.edges(data=True, keys=True):
-                            if u in Q_incoming_weight:
-                                if v in Q_incoming_weight:
-                                    # Circuit edge, do nothing for now.
-                                    # Eventually delete it.
-                                    continue
-                                else:
-                                    # Outgoing edge. Make it from new node
-                                    dd = data.copy()
-                                    new_edges.append((new_node, v, key, dd))
+                    G.add_node(new_node)
+                    new_edges = []
+                    for u, v, key, data in G.edges(data=True, keys=True):
+                        if u in Q_incoming_weight:
+                            if v not in Q_incoming_weight:
+                                # Outgoing edge. Make it from new node
+                                dd = data.copy()
+                                new_edges.append((new_node, v, key, dd))
+                        else:
+                            if v in Q_incoming_weight:
+                                # Incoming edge. Change its weight
+                                w = data[attr]
+                                w += minweight - Q_incoming_weight[v]
+                                dd = data.copy()
+                                dd[attr] = w
+                                new_edges.append((u, new_node, key, dd))
                             else:
-                                if v in Q_incoming_weight:
-                                    # Incoming edge. Change its weight
-                                    w = data[attr]
-                                    w += minweight - Q_incoming_weight[v]
-                                    dd = data.copy()
-                                    dd[attr] = w
-                                    new_edges.append((u, new_node, key, dd))
-                                else:
-                                    # Outside edge. No modification necessary.
-                                    continue
+                                # Outside edge. No modification necessary.
+                                continue
 
-                        G.remove_nodes_from(Q_nodes)
-                        B.remove_nodes_from(Q_nodes)
-                        D.difference_update(set(Q_nodes))
+                    G.remove_nodes_from(Q_nodes)
+                    B.remove_nodes_from(Q_nodes)
+                    D.difference_update(set(Q_nodes))
 
-                        for u, v, key, data in new_edges:
-                            G.add_edge(u, v, key, **data)
-                            if 'candidate' in data:
-                                del data['candidate']
-                                B.add_edge(u, v, key, **data)
-                                uf.union(u, v)
+                    for u, v, key, data in new_edges:
+                        G.add_edge(u, v, key, **data)
+                        if 'candidate' in data:
+                            del data['candidate']
+                            B.add_edge(u, v, key, **data)
+                            uf.union(u, v)
 
-                        nodes = iter(list(G.nodes()))
-                        self.level += 1
+                    nodes = iter(list(G.nodes()))
+                    self.level += 1
 
 
 
@@ -661,13 +642,11 @@ class Edmonds(object):
 
 def maximum_branching(G, attr='weight', default=1):
     ed = Edmonds(G)
-    B = ed.find_optimum(attr, default, kind='max', style='branching')
-    return B
+    return ed.find_optimum(attr, default, kind='max', style='branching')
 
 def minimum_branching(G, attr='weight', default=1):
     ed = Edmonds(G)
-    B = ed.find_optimum(attr, default, kind='min', style='branching')
-    return B
+    return ed.find_optimum(attr, default, kind='min', style='branching')
 
 def maximum_spanning_arborescence(G, attr='weight', default=1):
     ed = Edmonds(G)

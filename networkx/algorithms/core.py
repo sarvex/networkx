@@ -85,10 +85,10 @@ def core_number(G):
         if degrees[v]>curr_degree:
             bin_boundaries.extend([i]*(degrees[v]-curr_degree))
             curr_degree=degrees[v]
-    node_pos = dict((v,pos) for pos,v in enumerate(nodes))
+    node_pos = {v: pos for pos,v in enumerate(nodes)}
     # initial guesses for core is degree
     core=degrees
-    nbrs=dict((v,set(neighbors(v))) for v in G)
+    nbrs = {v: set(neighbors(v)) for v in G}
     for v in nodes:
         for u in nbrs[v]:
             if core[u] > core[v]:

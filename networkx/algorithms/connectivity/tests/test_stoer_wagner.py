@@ -13,10 +13,11 @@ def _check_partition(G, cut_value, partition, weight):
     assert_equal(sum(map(len, partition)), len(G))
     assert_equal(set(chain.from_iterable(partition)), set(G))
     partition = tuple(map(set, partition))
-    w = 0
-    for u, v, e in G.edges_iter(data=True):
-        if (u in partition[0]) == (v in partition[1]):
-            w += e.get(weight, 1)
+    w = sum(
+        e.get(weight, 1)
+        for u, v, e in G.edges_iter(data=True)
+        if (u in partition[0]) == (v in partition[1])
+    )
     assert_equal(w, cut_value)
 
 

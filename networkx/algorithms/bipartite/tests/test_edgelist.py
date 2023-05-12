@@ -139,11 +139,11 @@ class TestEdgelist:
         G = nx.Graph()
         try: # Python 3.x
             blurb = chr(1245) # just to trigger the exception
-            name1 = 'Bj' + chr(246) + 'rk'
-            name2 = chr(220) + 'ber'
+            name1 = f'Bj{chr(246)}rk'
+            name2 = f'{chr(220)}ber'
         except ValueError: # Python 2.6+
-            name1 = 'Bj' + unichr(246) + 'rk'
-            name2 = unichr(220) + 'ber'
+            name1 = f'Bj{unichr(246)}rk'
+            name2 = f'{unichr(220)}ber'
         G.add_edge(name1, 'Radiohead', attr_dict={name2: 3})
         G.add_node(name1,bipartite=0)
         G.add_node('Radiohead',bipartite=1)

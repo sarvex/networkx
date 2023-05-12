@@ -141,19 +141,15 @@ def shell_layout(G,nlist=None,dim=2,scale=1):
         return {}
     if len(G)==1:
         return {G.nodes()[0]:(1,)*dim}
-    if nlist==None:
+    if nlist is None:
         nlist=[G.nodes()] # draw the whole graph in one shell
 
-    if len(nlist[0])==1:
-        radius=0.0 # single node at center
-    else:
-        radius=1.0 # else start at r=1
-
+    radius = 0.0 if len(nlist[0])==1 else 1.0
     npos={}
     for nodes in nlist:
         t=np.arange(0,2.0*np.pi,2.0*np.pi/len(nodes),dtype=np.float32)
         pos=np.transpose(np.array([radius*np.cos(t),radius*np.sin(t)]))
-        npos.update(zip(nodes,pos))
+        npos |= zip(nodes,pos)
         radius+=1.0
 
     # FIXME: rescale
@@ -277,7 +273,7 @@ def _fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
 
     A=np.asarray(A) # make sure we have an array instead of a matrix
 
-    if pos==None:
+    if pos is None:
         # random initial positions
         pos=np.asarray(np.random.random((nnodes,dim)),dtype=A.dtype)
     else:
@@ -299,7 +295,7 @@ def _fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
     # the inscrutable (but fast) version
     # this is still O(V^2)
     # could use multilevel methods to speed this up significantly
-    for iteration in range(iterations):
+    for _ in range(iterations):
         # matrix of difference between points
         for i in range(pos.shape[1]):
             delta[:,:,i]= pos[:,i,None]-pos[:,i]
@@ -348,7 +344,7 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
     except:
         A=(coo_matrix(A)).tolil()
 
-    if pos==None:
+    if pos is None:
         # random initial positions
         pos=np.asarray(np.random.random((nnodes,dim)),dtype=A.dtype)
     else:
@@ -356,7 +352,7 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
         pos=pos.astype(A.dtype)
 
     # no fixed nodes
-    if fixed==None:
+    if fixed is None:
         fixed=[]
 
     # optimal distance between nodes
@@ -370,7 +366,7 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
     dt=t/float(iterations+1)
 
     displacement=np.zeros((dim,nnodes))
-    for iteration in range(iterations):
+    for _ in range(iterations):
         displacement*=0
         # loop over rows
         for i in range(A.shape[0]):
@@ -558,8 +554,7 @@ def flatten(l):
         bs = str
     for el in l:
         if isinstance(el, collections.Iterable) and not isinstance(el, bs):
-            for sub in flatten(el):
-                yield sub
+            yield from flatten(el)
         else:
             yield el
 

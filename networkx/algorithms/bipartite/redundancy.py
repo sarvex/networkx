@@ -72,7 +72,7 @@ def node_redundancy(G, nodes=None):
     for v in nodes:
         overlap = 0.0
         for u, w in combinations(G[v], 2):
-            if len((set(G[u]) & set(G[w])) - set([v])) > 0:
+            if len((set(G[u]) & set(G[w])) - {v}) > 0:
                 overlap += 1
         if overlap > 0:
             n = len(G[v])

@@ -71,14 +71,8 @@ def relabel_nodes(G, mapping, copy=True):
     """
     # you can pass a function f(old_label)->new_label
     # but we'll just make a dictionary here regardless
-    if not hasattr(mapping,"__getitem__"):
-        m = dict((n, mapping(n)) for n in G)
-    else:
-        m = mapping
-    if copy:
-        return _relabel_copy(G, m)
-    else:
-        return _relabel_inplace(G, m)
+    m = mapping if hasattr(mapping,"__getitem__") else {n: mapping(n) for n in G}
+    return _relabel_copy(G, m) if copy else _relabel_inplace(G, m)
 
 
 def _relabel_inplace(G, mapping):
@@ -110,7 +104,7 @@ def _relabel_inplace(G, mapping):
         try:
             G.add_node(new, attr_dict=G.node[old])
         except KeyError:
-            raise KeyError("Node %s is not in the graph"%old)
+            raise KeyError(f"Node {old} is not in the graph")
         if multigraph:
             new_edges = [(new, new if old == target else target, key, data)
                          for (_,target,key,data)
@@ -131,7 +125,7 @@ def _relabel_inplace(G, mapping):
 
 def _relabel_copy(G, mapping):
     H = G.__class__()
-    H.name = "(%s)" % G.name
+    H.name = f"({G.name})"
     if G.is_multigraph():
         H.add_edges_from( (mapping.get(n1, n1),mapping.get(n2, n2),k,d.copy())
                           for (n1,n2,k,d) in G.edges_iter(keys=True, data=True))
@@ -140,7 +134,7 @@ def _relabel_copy(G, mapping):
                           for (n1, n2, d) in G.edges_iter(data=True))
 
     H.add_nodes_from(mapping.get(n, n) for n in G)
-    H.node.update(dict((mapping.get(n, n), d.copy()) for n,d in G.node.items()))
+    H.node.update({mapping.get(n, n): d.copy() for n,d in G.node.items()})
     H.graph.update(G.graph.copy())
 
     return H
@@ -195,11 +189,10 @@ def convert_node_labels_to_integers(G, first_label=0, ordering="default",
         dv_pairs.reverse()
         mapping = dict(zip([n for d,n in dv_pairs], range(first_label, N)))
     else:
-        raise nx.NetworkXError('Unknown node ordering: %s'%ordering)
+        raise nx.NetworkXError(f'Unknown node ordering: {ordering}')
     H = relabel_nodes(G, mapping)
-    H.name = "("+G.name+")_with_int_labels"
+    H.name = f"({G.name})_with_int_labels"
     # create node attribute with the old label
     if label_attribute is not None:
-        nx.set_node_attributes(H, label_attribute,
-                               dict((v,k) for k,v in mapping.items()))
+        nx.set_node_attributes(H, label_attribute, {v: k for k,v in mapping.items()})
     return H

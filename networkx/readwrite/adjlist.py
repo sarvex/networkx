@@ -82,7 +82,7 @@ def generate_adjlist(G, delimiter = ' '):
             if not directed and t in seen:
                 continue
             if G.is_multigraph():
-                for d in data.values():
+                for _ in data.values():
                     line += make_str(t) + delimiter
             else:
                 line += make_str(t) + delimiter
@@ -214,15 +214,15 @@ def parse_adjlist(lines, comments = '#', delimiter = None,
             try:
                 u=nodetype(u)
             except:
-                raise TypeError("Failed to convert node (%s) to type %s"\
-                                %(u,nodetype))
+                raise TypeError(f"Failed to convert node ({u}) to type {nodetype}")
         G.add_node(u)
         if nodetype is not None:
             try:
                 vlist=map(nodetype,vlist)
             except:
-                raise TypeError("Failed to convert nodes (%s) to type %s"\
-                                    %(','.join(vlist),nodetype))
+                raise TypeError(
+                    f"Failed to convert nodes ({','.join(vlist)}) to type {nodetype}"
+                )
         G.add_edges_from([(u, v) for v in vlist])
     return G
 

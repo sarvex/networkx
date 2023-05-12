@@ -69,7 +69,7 @@ def hits(G,max_iter=100,tol=1.0e-8,nstart=None,normalized=True):
        doi:10.1145/324133.324140.
        http://www.cs.cornell.edu/home/kleinber/auth.pdf.
     """
-    if type(G) == nx.MultiGraph or type(G) == nx.MultiDiGraph:
+    if type(G) in [nx.MultiGraph, nx.MultiDiGraph]:
         raise Exception("hits() not defined for graphs with multiedges.")
     if len(G) == 0:
         return {},{}
@@ -103,7 +103,7 @@ def hits(G,max_iter=100,tol=1.0e-8,nstart=None,normalized=True):
         s=1.0/max(a.values())
         for n in a: a[n]*=s
         # check convergence, l1 norm
-        err=sum([abs(h[n]-hlast[n]) for n in h])
+        err = sum(abs(h[n]-hlast[n]) for n in h)
         if err < tol:
             break
         if i>max_iter:

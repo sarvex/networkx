@@ -53,7 +53,7 @@ def _tree_edges(n,r):
     parents=[next(nodes)] # stack of max length r
     while parents:
         source=parents.pop(0)
-        for i in range(r):
+        for _ in range(r):
             try:
                 target=next(nodes)
                 parents.append(target)
@@ -121,15 +121,10 @@ def balanced_tree(r, h, create_using=None):
     Also refered to as a complete r-ary tree.
     """
     # number of nodes is n=1+r+..+r^h
-    if r==1:
-        n=2
-    else:
-        n = int((1-r**(h+1))/(1-r)) # sum of geometric series r!=1
+    n = 2 if r==1 else int((1-r**(h+1))/(1-r))
     G=nx.empty_graph(n,create_using)
     G.add_edges_from(_tree_edges(n,r))
     return G
-
-    return nx.full_rary_tree(r,n,create_using)
 
 def barbell_graph(m1,m2,create_using=None):
     """Return the Barbell Graph: two complete graphs connected by a path.
@@ -165,7 +160,7 @@ def barbell_graph(m1,m2,create_using=None):
     G.name="barbell_graph(%d,%d)"%(m1,m2)
 
     # connecting path
-    G.add_nodes_from([v for v in range(m1,m1+m2-1)])
+    G.add_nodes_from(list(range(m1,m1+m2-1)))
     if m2>1:
         G.add_edges_from([(v,v+1) for v in range(m1,m1+m2-1)])
     # right barbell
@@ -239,7 +234,7 @@ def dorogovtsev_goltsev_mendes_graph(n,create_using=None):
     if n==0:
         return G
     new_node = 2         # next node to be added
-    for i in range(1,n+1): #iterate over number of generations.
+    for _ in range(1,n+1):
         last_generation_edges = G.edges()
         number_of_edges_in_last_generation = len(last_generation_edges)
         for j in range(0,number_of_edges_in_last_generation):
@@ -336,25 +331,21 @@ def grid_graph(dim,periodic=False):
     If periodic=True then join grid edges with periodic boundary conditions.
 
     """
-    dlabel="%s"%dim
+    dlabel = f"{dim}"
     if dim==[]:
         G=empty_graph(0)
-        G.name="grid_graph(%s)"%dim
+        G.name = f"grid_graph({dim})"
         return G
     if not is_list_of_ints(dim):
         raise nx.NetworkXError("dim is not a list of integers")
     if min(dim)<=0:
         raise nx.NetworkXError(\
               "dim is not a list of strictly positive integers")
-    if periodic:
-        func=cycle_graph
-    else:
-        func=path_graph
-
+    func = cycle_graph if periodic else path_graph
     dim=list(dim)
     current_dim=dim.pop()
     G=func(current_dim)
-    while len(dim)>0:
+    while dim:
         current_dim=dim.pop()
         # order matters: copy before it is cleared during the creation of Gnew
         Gold=G.copy()
@@ -365,7 +356,7 @@ def grid_graph(dim,periodic=False):
     # graph G is done but has labels of the form (1,(2,(3,1)))
     # so relabel
     H=nx.relabel_nodes(G, flatten)
-    H.name="grid_graph(%s)"%dlabel
+    H.name = f"grid_graph({dlabel})"
     return H
 
 def hypercube_graph(n):
@@ -425,7 +416,7 @@ def lollipop_graph(m,n,create_using=None):
     # the ball
     G=complete_graph(m,create_using)
     # the stick
-    G.add_nodes_from([v for v in range(m,m+n)])
+    G.add_nodes_from(list(range(m,m+n)))
     if n>1:
         G.add_edges_from([(v,v+1) for v in range(m,m+n-1)])
     # connect ball to stick

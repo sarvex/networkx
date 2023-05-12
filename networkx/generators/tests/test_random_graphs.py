@@ -101,7 +101,7 @@ class TestGeneratorsRandom():
             # assert that random graphs generate all edges for p close to 1
             edges = 0
             runs = 100
-            for i in range(runs):
+            for _ in range(runs):
                 edges += len(generator(10, 0.99999, directed=True).edges())
             assert_almost_equal(edges/float(runs), 90, delta=runs*2.0/100)
 

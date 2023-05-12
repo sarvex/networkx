@@ -202,10 +202,7 @@ def directed_laplacian_matrix(G, nodelist=None, weight='weight',
     from scipy.sparse import identity, spdiags, linalg
     if walk_type is None:
         if nx.is_strongly_connected(G):
-            if nx.is_aperiodic(G):
-                walk_type = "random"
-            else:
-                walk_type = "lazy"
+            walk_type = "random" if nx.is_aperiodic(G) else "lazy"
         else:
             walk_type = "pagerank"
 

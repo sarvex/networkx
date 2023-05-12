@@ -47,8 +47,7 @@ def sh2(cmd):
     Stderr is unbuffered from the subshell.x"""
     p = Popen(cmd, stdout=PIPE, shell=True)
     out = p.communicate()[0]
-    retcode = p.returncode
-    if retcode:
+    if retcode := p.returncode:
         raise CalledProcessError(retcode, cmd)
     else:
         return out.rstrip()
@@ -60,8 +59,7 @@ def sh3(cmd):
     If anything appears in stderr, print it out to sys.stderr"""
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
-    retcode = p.returncode
-    if retcode:
+    if retcode := p.returncode:
         raise CalledProcessError(retcode, cmd)
     else:
         return out.rstrip(), err.rstrip()
@@ -69,7 +67,7 @@ def sh3(cmd):
 
 def init_repo(path):
     """clone the gh-pages repo if we haven't already."""
-    sh("git clone %s %s"%(pages_repo, path))
+    sh(f"git clone {pages_repo} {path}")
     here = os.getcwdu()
     cd(path)
     sh('git checkout gh-pages')

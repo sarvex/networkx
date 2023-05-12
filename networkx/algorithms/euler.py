@@ -113,11 +113,7 @@ def eulerian_circuit(G, source=None):
     g = G.__class__(G) # copy graph structure (not attributes)
 
     # set starting node
-    if source is None:
-        v = next(g.nodes_iter())
-    else:
-        v = source
-
+    v = next(g.nodes_iter()) if source is None else source
     if g.is_directed():
         degree = g.in_degree
         edges = g.in_edges_iter

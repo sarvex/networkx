@@ -154,11 +154,7 @@ def strategy_saturation_largest_first(G, colors):
     """
     len_g = len(G)
     no_colored = 0
-    distinct_colors = {}
-
-    for node in G.nodes_iter():
-        distinct_colors[node] = set()
-
+    distinct_colors = {node: set() for node in G.nodes_iter()}
     while no_colored != len_g:
         if no_colored == 0:
              # When sat. for all nodes is 0, yield the node with highest degree
@@ -263,32 +259,28 @@ def greedy_color(G, strategy=strategy_largest_first, interchange=False):
     colors = {}  # dictionary to keep track of the colors of the nodes
 
     if len(G):
-        if interchange and (
-                strategy == strategy_independent_set or
-                strategy == strategy_saturation_largest_first):
+        if interchange and strategy in [
+            strategy_independent_set,
+            strategy_saturation_largest_first,
+        ]:
             raise nx.NetworkXPointlessConcept(
                 'Interchange is not applicable for GIS and SLF')
 
-        nodes = strategy(G, colors)
-
-        if nodes:
+        if nodes := strategy(G, colors):
             if interchange:
                 return (_interchange
                         .greedy_coloring_with_interchange(G, nodes))
-            else:
-                for node in nodes:
+            for node in nodes:
                      # set to keep track of colors of neighbours
-                    neighbour_colors = set()
+                neighbour_colors = {
+                    colors[neighbour]
+                    for neighbour in G.neighbors_iter(node)
+                    if neighbour in colors
+                }
+                for color in itertools.count():
+                    if color not in neighbour_colors:
+                        break
 
-                    for neighbour in G.neighbors_iter(node):
-                        if neighbour in colors:
-                            neighbour_colors.add(colors[neighbour])
-
-                    for color in itertools.count():
-                        if color not in neighbour_colors:
-                            break
-
-                     # assign the node the newly found color
-                    colors[node] = color
+                colors[node] = color
 
     return colors

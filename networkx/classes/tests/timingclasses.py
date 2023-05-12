@@ -433,7 +433,7 @@ class TimingGraph(object):
                 if nn not in self.node:
                     self.adj[nn] = {}
                     newdict = attr.copy()
-                    newdict.update(ndict)
+                    newdict |= ndict
                     self.node[nn] = newdict
                 else:
                     olddict = self.node[nn]
@@ -476,7 +476,7 @@ class TimingGraph(object):
             nbrs = list(adj[n].keys()) # keys handles self-loops (allow mutation later)
             del self.node[n]
         except KeyError: # NetworkXError if n not in self
-            raise NetworkXError("The node %s is not in the graph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the graph.")
         for u in nbrs:
             del adj[u][n]   # remove all edges n-u in graph
         del adj[n]          # now remove node
@@ -550,9 +550,7 @@ class TimingGraph(object):
         >>> [d for n,d in G.nodes_iter(data=True)]
         [{}, {}, {}]
         """
-        if data:
-            return iter(self.node.items())
-        return iter(self.node)
+        return iter(self.node.items()) if data else iter(self.node)
 
     def nodes(self, data=False):
         """Return a list of the nodes in the graph.
@@ -764,18 +762,17 @@ class TimingGraph(object):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dictionary.")
+                        "The attr_dict argument must be a dictionary.")
         # process ebunch
         for e in ebunch:
             ne=len(e)
-            if ne==3:
-                u,v,dd = e
-            elif ne==2:
+            if ne == 2:
                 u,v = e
                 dd = {}
+            elif ne == 3:
+                u,v,dd = e
             else:
-                raise NetworkXError(\
-                    "Edge tuple %s must be a 2-tuple or 3-tuple."%(e,))
+                raise NetworkXError(f"Edge tuple {e} must be a 2-tuple or 3-tuple.")
             if u not in self.node:
                 self.adj[u] = {}
                 self.node[u] = {}
@@ -854,7 +851,7 @@ class TimingGraph(object):
             if u != v:  # self-loop needs only one entry removed
                 del self.adj[v][u]
         except KeyError:
-            raise NetworkXError("The edge %s-%s is not in the graph"%(u,v))
+            raise NetworkXError(f"The edge {u}-{v} is not in the graph")
 
 
 
@@ -976,7 +973,7 @@ class TimingGraph(object):
         try:
             return list(self.adj[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the graph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the graph.")
 
     def neighbors_iter(self, n):
         """Return an iterator over all neighbors of node n.
@@ -999,7 +996,7 @@ class TimingGraph(object):
         try:
             return iter(self.adj[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the graph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the graph.")
 
     def edges(self, nbunch=None, data=False):
         """Return a list of edges.
@@ -1622,10 +1619,7 @@ class TimingGraph(object):
         6.0
         """
         s=sum(self.degree(weight=weight).values())/2
-        if weight is None:
-            return int(s)
-        else:
-            return float(s)
+        return int(s) if weight is None else float(s)
 
     def number_of_edges(self, u=None, v=None):
         """Return the number of edges between two nodes.
@@ -1659,10 +1653,7 @@ class TimingGraph(object):
         1
         """
         if u is None: return int(self.size())
-        if v in self.adj[u]:
-            return 1
-        else:
-            return 0
+        return 1 if v in self.adj[u] else 0
 
 
     def add_star(self, nodes, **attr):
@@ -1792,7 +1783,7 @@ class TimingGraph(object):
             bunch=iter(self.adj.keys())
         elif nbunch in self: # if nbunch is a single node
             bunch=iter([nbunch])
-        else:                # if nbunch is a sequence of nodes
+        else:            # if nbunch is a sequence of nodes
             def bunch_iter(nlist,adj):
                 try:
                     for n in nlist:
@@ -1805,13 +1796,12 @@ class TimingGraph(object):
                     # capture error for non-sequence/iterator nbunch.
                     if 'iter' in message:
                         raise NetworkXError(\
-                            "nbunch is not a node or a sequence of nodes.")
-                    # capture error for unhashable node.
+                                "nbunch is not a node or a sequence of nodes.")
                     elif 'hashable' in message:
-                        raise NetworkXError(\
-                            "Node %s in the sequence nbunch is not a valid node."%n)
+                        raise NetworkXError(f"Node {n} in the sequence nbunch is not a valid node.")
                     else:
                         raise
+
             bunch=bunch_iter(nbunch,self.adj)
         return bunch
 
@@ -2134,7 +2124,7 @@ class TimingDiGraph(TimingGraph):
                     self.succ[nn] = {}
                     self.pred[nn] = {}
                     newdict = attr.copy()
-                    newdict.update(ndict)
+                    newdict |= ndict
                     self.node[nn] = newdict
                 else:
                     olddict = self.node[nn]
@@ -2176,7 +2166,7 @@ class TimingDiGraph(TimingGraph):
             nbrs=self.succ[n]
             del self.node[n]
         except KeyError: # NetworkXError if n not in self
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the digraph.")
         for u in nbrs:
             del self.pred[u][n] # remove all edges n-u in digraph
         del self.succ[n]          # remove node from succ
@@ -2348,19 +2338,18 @@ class TimingDiGraph(TimingGraph):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dict.")
+                        "The attr_dict argument must be a dict.")
         # process ebunch
         for e in ebunch:
             ne = len(e)
-            if ne==3:
-                u,v,dd = e
-                assert hasattr(dd,"update")
-            elif ne==2:
+            if ne == 2:
                 u,v = e
                 dd = {}
+            elif ne == 3:
+                u,v,dd = e
+                assert hasattr(dd,"update")
             else:
-                raise NetworkXError(\
-                    "Edge tuple %s must be a 2-tuple or 3-tuple."%(e,))
+                raise NetworkXError(f"Edge tuple {e} must be a 2-tuple or 3-tuple.")
             if u not in self.succ:
                 self.succ[u] = {}
                 self.pred[u] = {}
@@ -2407,7 +2396,7 @@ class TimingDiGraph(TimingGraph):
             del self.succ[u][v]
             del self.pred[v][u]
         except KeyError:
-            raise NetworkXError("The edge %s-%s not in graph."%(u,v))
+            raise NetworkXError(f"The edge {u}-{v} not in graph.")
 
 
     def remove_edges_from(self, ebunch):
@@ -2466,14 +2455,14 @@ class TimingDiGraph(TimingGraph):
         try:
             return iter(self.succ[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the digraph.")
 
     def predecessors_iter(self,n):
         """Return an iterator over predecessor nodes of n."""
         try:
             return iter(self.pred[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError(f"The node {n} is not in the digraph.")
 
     def successors(self, n):
         """Return a list of successor nodes of n.
@@ -2962,7 +2951,7 @@ class TimingDiGraph(TimingGraph):
             the original graph (this changes the original graph).
         """
         if copy:
-            H = self.__class__(name="Reverse of (%s)"%self.name)
+            H = self.__class__(name=f"Reverse of ({self.name})")
             H.add_nodes_from(self)
             H.add_edges_from( (v,u,deepcopy(d)) for u,v,d
                               in self.edges(data=True) )
@@ -3261,7 +3250,7 @@ class TimingMultiGraph(TimingGraph):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dictionary.")
+                        "The attr_dict argument must be a dictionary.")
         # add nodes
         if u not in self.adj:
             self.adj[u] = {}
@@ -3285,7 +3274,7 @@ class TimingMultiGraph(TimingGraph):
             if key is None:
                 key=0
             datadict={}
-            datadict.update(attr_dict)
+            datadict |= attr_dict
             keydict={key:datadict}
             self.adj[u][v] = keydict
             self.adj[v][u] = keydict
@@ -3345,26 +3334,22 @@ class TimingMultiGraph(TimingGraph):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dictionary.")
+                        "The attr_dict argument must be a dictionary.")
         # process ebunch
         for e in ebunch:
             ne=len(e)
-            if ne==4:
-                u,v,key,dd = e
-            elif ne==3:
-                u,v,dd = e
-                key=None
-            elif ne==2:
+            if ne == 2:
                 u,v = e
                 dd = {}
                 key=None
+            elif ne == 3:
+                u,v,dd = e
+                key=None
+            elif ne == 4:
+                u,v,key,dd = e
             else:
-                raise NetworkXError(\
-                    "Edge tuple %s must be a 2-tuple, 3-tuple or 4-tuple."%(e,))
-            if u in self.adj:
-                keydict=self.adj[u].get(v,{})
-            else:
-                keydict={}
+                raise NetworkXError(f"Edge tuple {e} must be a 2-tuple, 3-tuple or 4-tuple.")
+            keydict = self.adj[u].get(v,{}) if u in self.adj else {}
             if key is None:
                 # find a unique integer key
                 # other methods might be better here?
@@ -3422,18 +3407,16 @@ class TimingMultiGraph(TimingGraph):
         """
         try:
             d=self.adj[u][v]
-        except (KeyError):
-            raise NetworkXError(
-                "The edge %s-%s is not in the graph."%(u,v))
+        except KeyError:
+            raise NetworkXError(f"The edge {u}-{v} is not in the graph.")
         # remove the edge with specified data
         if key is None:
             d.popitem()
         else:
             try:
                 del d[key]
-            except (KeyError):
-                raise NetworkXError(
-                "The edge %s-%s with key %s is not in the graph."%(u,v,key))
+            except KeyError:
+                raise NetworkXError(f"The edge {u}-{v} with key {key} is not in the graph.")
         if len(d)==0:
             # remove the key entries if last edge
             del self.adj[u][v]
@@ -3534,10 +3517,7 @@ class TimingMultiGraph(TimingGraph):
 
         """
         try:
-            if key is None:
-                return v in self.adj[u]
-            else:
-                return key in self.adj[u][v]
+            return v in self.adj[u] if key is None else key in self.adj[u][v]
         except KeyError:
             return False
 
@@ -3716,10 +3696,7 @@ class TimingMultiGraph(TimingGraph):
         0
         """
         try:
-            if key is None:
-                return self.adj[u][v]
-            else:
-                return self.adj[u][v][key]
+            return self.adj[u][v] if key is None else self.adj[u][v][key]
         except KeyError:
             return default
 
@@ -3765,17 +3742,14 @@ class TimingMultiGraph(TimingGraph):
 
         if weight is None:
             for n,nbrs in nodes_nbrs:
-                deg = sum([len(data) for data in nbrs.values()])
+                deg = sum(len(data) for data in nbrs.values())
                 yield (n, deg+(n in nbrs and len(nbrs[n])))
         else:
         # edge weighted graph - degree is sum of nbr edge weights
             for n,nbrs in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in nbrs.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in nbrs.values() for d in data.values())
                 if n in nbrs:
-                    deg += sum([d.get(weight,1)
-                           for key,d in nbrs[n].items()])
+                    deg += sum(d.get(weight,1) for key,d in nbrs[n].items())
                 yield (n, deg)
 
 
@@ -3875,24 +3849,30 @@ class TimingMultiGraph(TimingGraph):
         [(1, 1, 0, {})]
         """
         if data:
-            if keys:
-                return [ (n,n,k,d) 
-                         for n,nbrs in self.adj.items() 
-                         if n in nbrs for k,d in nbrs[n].items()]
-            else:
-                return [ (n,n,d) 
-                         for n,nbrs in self.adj.items() 
-                         if n in nbrs for d in nbrs[n].values()]
-        else:
-            if keys:
-                return [ (n,n,k)
-                     for n,nbrs in self.adj.items() 
-                     if n in nbrs for k in nbrs[n].keys()]
+            return (
+                [
+                    (n, n, k, d)
+                    for n, nbrs in self.adj.items()
+                    if n in nbrs
+                    for k, d in nbrs[n].items()
+                ]
+                if keys
+                else [
+                    (n, n, d)
+                    for n, nbrs in self.adj.items()
+                    if n in nbrs
+                    for d in nbrs[n].values()
+                ]
+            )
+        if keys:
+            return [ (n,n,k)
+                 for n,nbrs in self.adj.items() 
+                 if n in nbrs for k in nbrs[n].keys()]
 
-            else:
-                return [ (n,n)
-                     for n,nbrs in self.adj.items() 
-                     if n in nbrs for d in nbrs[n].values()]
+        else:
+            return [ (n,n)
+                 for n,nbrs in self.adj.items() 
+                 if n in nbrs for d in nbrs[n].values()]
 
 
     def number_of_edges(self, u=None, v=None):
@@ -4215,7 +4195,7 @@ class TimingMultiDiGraph(TimingMultiGraph,TimingDiGraph):
                 attr_dict.update(attr)
             except AttributeError:
                 raise NetworkXError(\
-                    "The attr_dict argument must be a dictionary.")
+                        "The attr_dict argument must be a dictionary.")
         # add nodes
         if u not in self.succ:
             self.succ[u] = {}
@@ -4241,7 +4221,7 @@ class TimingMultiDiGraph(TimingMultiGraph,TimingDiGraph):
             if key is None:
                 key=0
             datadict={}
-            datadict.update(attr_dict)
+            datadict |= attr_dict
             keydict={key:datadict}
             self.succ[u][v] = keydict
             self.pred[v][u] = keydict
@@ -4291,18 +4271,16 @@ class TimingMultiDiGraph(TimingMultiGraph,TimingDiGraph):
         """
         try:
             d=self.adj[u][v]
-        except (KeyError):
-            raise NetworkXError(
-                "The edge %s-%s is not in the graph."%(u,v))
+        except KeyError:
+            raise NetworkXError(f"The edge {u}-{v} is not in the graph.")
         # remove the edge with specified data
         if key is None:
             d.popitem()
         else:
             try:
                 del d[key]
-            except (KeyError):
-                raise NetworkXError(
-                "The edge %s-%s with key %s is not in the graph."%(u,v,key))
+            except KeyError:
+                raise NetworkXError(f"The edge {u}-{v} with key {key} is not in the graph.")
         if len(d)==0:
             # remove the key entries if last edge
             del self.succ[u][v]
@@ -4522,18 +4500,14 @@ class TimingMultiDiGraph(TimingMultiGraph,TimingDiGraph):
 
         if weight is None:
             for (n,succ),(n2,pred) in nodes_nbrs:
-                indeg = sum([len(data) for data in pred.values()])
-                outdeg = sum([len(data) for data in succ.values()])
+                indeg = sum(len(data) for data in pred.values())
+                outdeg = sum(len(data) for data in succ.values())
                 yield (n, indeg + outdeg)
         else:
         # edge weighted graph - degree is sum of nbr edge weights
             for (n,succ),(n2,pred) in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in pred.values()
-                           for d in data.values()])
-                deg += sum([d.get(weight,1)
-                           for data in succ.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in pred.values() for d in data.values())
+                deg += sum(d.get(weight,1) for data in succ.values() for d in data.values())
                 yield (n, deg)
 
 
@@ -4579,13 +4553,11 @@ class TimingMultiDiGraph(TimingMultiGraph,TimingDiGraph):
 
         if weight is None:
             for n,nbrs in nodes_nbrs:
-                yield (n, sum([len(data) for data in nbrs.values()]) )
+                yield (n, sum(len(data) for data in nbrs.values()))
         else:
             # edge weighted graph - degree is sum of nbr edge weights
             for n,pred in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in pred.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in pred.values() for d in data.values())
                 yield (n, deg)
 
 
@@ -4631,12 +4603,10 @@ class TimingMultiDiGraph(TimingMultiGraph,TimingDiGraph):
 
         if weight is None:
             for n,nbrs in nodes_nbrs:
-                yield (n, sum([len(data) for data in nbrs.values()]) )
+                yield (n, sum(len(data) for data in nbrs.values()))
         else:
             for n,succ in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in succ.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in succ.values() for d in data.values())
                 yield (n, deg)
 
     def is_multigraph(self):
@@ -4821,7 +4791,7 @@ class TimingMultiDiGraph(TimingMultiGraph,TimingDiGraph):
             the original graph (this changes the original graph).
         """
         if copy:
-            H = self.__class__(name="Reverse of (%s)"%self.name)
+            H = self.__class__(name=f"Reverse of ({self.name})")
             H.add_nodes_from(self)
             H.add_edges_from( (v,u,k,deepcopy(d)) for u,v,k,d 
                               in self.edges(keys=True, data=True) )

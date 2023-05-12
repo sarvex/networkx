@@ -54,7 +54,7 @@ class PrintGraph(Graph):
 
     def add_edges_from(self, ebunch, attr_dict=None, **attr):  
         for e in ebunch:
-            u,v=e[0:2]
+            u,v = e[:2]
             self.add_edge(u,v,attr_dict=attr_dict,**attr)
 
     def remove_edge(self, u, v): 
@@ -63,7 +63,7 @@ class PrintGraph(Graph):
 
     def remove_edges_from(self, ebunch): 
         for e in ebunch:
-            u,v=e[0:2]
+            u,v = e[:2]
             self.remove_edge(u,v)
 
     def clear(self):
@@ -84,12 +84,12 @@ class PrintGraph(Graph):
         if not copy: 
             # remove all nodes (and attached edges) not in nbunch
             self.remove_nodes_from([n for n in self if n not in bunch])
-            self.name = "Subgraph of (%s)"%(self.name)
+            self.name = f"Subgraph of ({self.name})"
             return self
         else:
             # create new graph and copy subgraph into it       
             H = self.__class__()
-            H.name = "Subgraph of (%s)"%(self.name)
+            H.name = f"Subgraph of ({self.name})"
             # add nodes
             H.add_nodes_from(bunch)
             # add edges
@@ -102,8 +102,7 @@ class PrintGraph(Graph):
                             H.add_edge(u,v,dd)
                     seen.add(u)
             # copy node and graph attr dicts
-            H.node=dict( (n,deepcopy(d)) 
-                         for (n,d) in self.node.items() if n in H)
+            H.node = {n: deepcopy(d) for (n,d) in self.node.items() if n in H}
             H.graph=deepcopy(self.graph)
             return H
 

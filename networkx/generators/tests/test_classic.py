@@ -273,8 +273,7 @@ class TestGeneratorClassic():
             b=lollipop_graph(m1,m2)
             assert_equal(number_of_nodes(b), m1+m2)
             assert_equal(number_of_edges(b), m1*(m1-1)/2 + m2)
-            assert_equal(b.name,
-                         'lollipop_graph(' + str(m1) + ',' + str(m2) + ')')
+            assert_equal(b.name, f'lollipop_graph({str(m1)},{str(m2)})')
 
         # Raise NetworkXError if m<2
         assert_raises(networkx.exception.NetworkXError,

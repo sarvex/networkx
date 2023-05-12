@@ -72,7 +72,7 @@ def gn_graph(n,kernel=None,create_using=None,seed=None):
         random.seed(seed)
 
     G=empty_graph(1,create_using)
-    G.name="gn_graph(%s)"%(n)
+    G.name = f"gn_graph({n})"
 
     if n==1:
         return G
@@ -127,11 +127,11 @@ def gnr_graph(n,p,create_using=None,seed=None):
     elif not create_using.is_directed():
         raise nx.NetworkXError("Directed Graph required in create_using")
 
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
 
     G=empty_graph(1,create_using)
-    G.name="gnr_graph(%s,%s)"%(n,p)
+    G.name = f"gnr_graph({n},{p})"
 
     if n==1:
         return G
@@ -172,11 +172,11 @@ def gnc_graph(n,create_using=None,seed=None):
     elif not create_using.is_directed():
         raise nx.NetworkXError("Directed Graph required in create_using")
 
-    if not seed is None:
+    if seed is not None:
         random.seed(seed)
 
     G=empty_graph(1,create_using)
-    G.name="gnc_graph(%s)"%(n)
+    G.name = f"gnc_graph({n})"
 
     if n==1:
         return G
@@ -271,8 +271,8 @@ def scale_free_graph(n,
 
     if alpha+beta+gamma !=1.0:
         raise ValueError('alpha+beta+gamma must equal 1.')
-        
-    G.name="directed_scale_free_graph(%s,alpha=%s,beta=%s,gamma=%s,delta_in=%s,delta_out=%s)"%(n,alpha,beta,gamma,delta_in,delta_out)
+
+    G.name = f"directed_scale_free_graph({n},alpha={alpha},beta={beta},gamma={gamma},delta_in={delta_in},delta_out={delta_out})"
 
     # seed random number generated (uses None as default)
     random.seed(seed)
@@ -299,6 +299,6 @@ def scale_free_graph(n,
             # add new node w
             w = len(G) 
         G.add_edge(v,w)
-        
+
     return G
 

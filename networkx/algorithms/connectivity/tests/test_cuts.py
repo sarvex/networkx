@@ -20,17 +20,15 @@ def _generate_no_biconnected(max_attempts=50):
         if nx.is_connected(G) and not nx.is_biconnected(G):
             attempts = 0
             yield G
+        elif attempts >= max_attempts:
+            raise Exception("Tried %d times: no suitable Graph."%attempts % max_attempts)
         else:
-            if attempts >= max_attempts:
-                msg = "Tried %d times: no suitable Graph."%attempts
-                raise Exception(msg % max_attempts)
-            else:
-                attempts += 1
+            attempts += 1
  
 def test_articulation_points():
     Ggen = _generate_no_biconnected()
     for flow_func in flow_funcs:
-        for i in range(3):
+        for _ in range(3):
             G = next(Ggen)
             cut = nx.minimum_node_cut(G, flow_func=flow_func)
             assert_true(len(cut) == 1, msg=msg.format(flow_func.__name__))
@@ -56,10 +54,16 @@ def test_brandes_erlebach_book():
         H.remove_edges_from(edge_cut)
         assert_false(nx.is_connected(H), msg=msg.format(flow_func.__name__))
         # node cuts
-        assert_equal(set([6, 7]), minimum_st_node_cut(G, 1, 11, **kwargs),
-                     msg=msg.format(flow_func.__name__))
-        assert_equal(set([6, 7]), nx.minimum_node_cut(G, 1, 11, **kwargs),
-                     msg=msg.format(flow_func.__name__))
+        assert_equal(
+            {6, 7},
+            minimum_st_node_cut(G, 1, 11, **kwargs),
+            msg=msg.format(flow_func.__name__),
+        )
+        assert_equal(
+            {6, 7},
+            nx.minimum_node_cut(G, 1, 11, **kwargs),
+            msg=msg.format(flow_func.__name__),
+        )
         node_cut = nx.minimum_node_cut(G, **kwargs)
         assert_equal(2, len(node_cut), msg=msg.format(flow_func.__name__))
         H = G.copy()
@@ -89,7 +93,7 @@ def test_white_harary_paper():
         assert_false(nx.is_connected(H), msg=msg.format(flow_func.__name__))
         # node cuts
         node_cut = nx.minimum_node_cut(G, **kwargs)
-        assert_equal(set([0]), node_cut, msg=msg.format(flow_func.__name__))
+        assert_equal({0}, node_cut, msg=msg.format(flow_func.__name__))
         H = G.copy()
         H.remove_nodes_from(node_cut)
         assert_false(nx.is_connected(H), msg=msg.format(flow_func.__name__))
@@ -153,7 +157,7 @@ def test_node_cutset_exception():
 
 def test_node_cutset_random_graphs():
     for flow_func in flow_funcs:
-        for i in range(3):
+        for _ in range(3):
             G = nx.fast_gnp_random_graph(50, 0.25)
             if not nx.is_connected(G):
                 ccs = iter(nx.connected_components(G))
@@ -167,7 +171,7 @@ def test_node_cutset_random_graphs():
 
 def test_edge_cutset_random_graphs():
     for flow_func in flow_funcs:
-        for i in range(3):
+        for _ in range(3):
             G = nx.fast_gnp_random_graph(50, 0.25)
             if not nx.is_connected(G):
                 ccs = iter(nx.connected_components(G))

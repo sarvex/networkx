@@ -50,8 +50,8 @@ def edge_boundary(G, nbunch1, nbunch2=None):
     not required here.
 
     """
-    if nbunch2 is None:     # Then nbunch2 is complement of nbunch1
-        nset1=set((n for n in nbunch1 if n in G))
+    if nbunch2 is None: # Then nbunch2 is complement of nbunch1
+        nset1 = {n for n in nbunch1 if n in G}
         return [(n1,n2) for n1 in nset1 for n2 in G[n1] \
                 if n2 not in nset1]
 
@@ -91,7 +91,7 @@ def node_boundary(G, nbunch1, nbunch2=None):
     not required here.
 
     """
-    nset1=set(n for n in nbunch1 if n in G)
+    nset1 = {n for n in nbunch1 if n in G}
     bdy=set()
     for n1 in nset1:
         bdy.update(G[n1])

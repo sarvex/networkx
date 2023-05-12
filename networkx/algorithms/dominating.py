@@ -43,18 +43,16 @@ def dominating_set(G, start_with=None):
     all_nodes = set(G)
     if start_with is None:
         v = set(G).pop() # pick a node
-    else:
-        if start_with not in G:
-            raise nx.NetworkXError('node %s not in G' % start_with)
+    elif start_with in G:
         v = start_with
-    D = set([v])
+    else:
+        raise nx.NetworkXError(f'node {start_with} not in G')
+    D = {v}
     ND = set(G[v])
-    other = all_nodes - ND - D
-    while other:
+    while other := all_nodes - ND - D:
         w = other.pop()
         D.add(w)
         ND.update([nbr for nbr in G[w] if nbr not in D])
-        other = all_nodes - ND - D
     return D
 
 def is_dominating_set(G, nbunch):
@@ -80,11 +78,8 @@ def is_dominating_set(G, nbunch):
     .. [1] http://en.wikipedia.org/wiki/Dominating_set
 
     """
-    testset = set(n for n in nbunch if n in G)
+    testset = {n for n in nbunch if n in G}
     nbrs = set()
     for n in testset:
         nbrs.update(G[n])
-    if len(set(G) - testset - nbrs) > 0:
-        return False
-    else:
-        return True
+    return len(set(G) - testset - nbrs) <= 0

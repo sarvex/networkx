@@ -19,10 +19,10 @@ def clone_repo(url, branch):
     cwd = os.getcwd()
     tmpdir = tempfile.mkdtemp()
     try:
-        cmd = 'git clone %s %s' % (url, tmpdir)
+        cmd = f'git clone {url} {tmpdir}'
         call(cmd, shell=True)
         os.chdir(tmpdir)
-        cmd = 'git checkout %s' % branch
+        cmd = f'git checkout {branch}'
         call(cmd, shell=True)
     except:
         shutil.rmtree(tmpdir)
@@ -63,7 +63,7 @@ def filename_search_replace(sr_pairs, filename, backup=False):
         return False
     open(filename, 'wt').write(out_txt)
     if backup:
-        open(filename + '.bak', 'wt').write(in_txt)
+        open(f'{filename}.bak', 'wt').write(in_txt)
     return True
 
 
@@ -115,8 +115,8 @@ def make_link_targets(proj_name,
     .. _`proj_name` mailing list: url
     """
     link_contents = open(known_link_fname, 'rt').readlines()
-    have_url = not url is None
-    have_ml_url = not ml_url is None
+    have_url = url is not None
+    have_ml_url = ml_url is not None
     have_gh_url = None
     for line in link_contents:
         if not have_url:
@@ -135,21 +135,20 @@ def make_link_targets(proj_name,
         raise RuntimeError('Need command line or known project '
                            'and / or mailing list URLs')
     lines = []
-    if not url is None:
+    if url is not None:
         lines.append('.. _`%s`: %s\n' % (proj_name, url))
     if not have_gh_url:
         gh_url = 'http://github.com/%s/%s\n' % (user_name, repo_name)
         lines.append('.. _`%s github`: %s\n' % (proj_name, gh_url))
-    if not ml_url is None:
+    if ml_url is not None:
         lines.append('.. _`%s mailing list`: %s\n' % (proj_name, ml_url))
-    if len(lines) == 0:
+    if not lines:
         # Nothing to do
         return
     # A neat little header line
     lines = ['.. %s\n' % proj_name] + lines
-    out_links = open(out_link_fname, 'wt')
-    out_links.writelines(lines)
-    out_links.close()
+    with open(out_link_fname, 'wt') as out_links:
+        out_links.writelines(lines)
 
 
 USAGE = ''' <output_directory> <project_name>
@@ -174,16 +173,20 @@ def main():
     parser.add_option("--github-user", dest="main_gh_user",
                       help="github username for main repo - e.g fperez",
                       metavar="MAIN_GH_USER")
-    parser.add_option("--gitwash-url", dest="gitwash_url",
-                      help="URL to gitwash repository - default %s"
-                      % GITWASH_CENTRAL, 
-                      default=GITWASH_CENTRAL,
-                      metavar="GITWASH_URL")
-    parser.add_option("--gitwash-branch", dest="gitwash_branch",
-                      help="branch in gitwash repository - default %s"
-                      % GITWASH_BRANCH,
-                      default=GITWASH_BRANCH,
-                      metavar="GITWASH_BRANCH")
+    parser.add_option(
+        "--gitwash-url",
+        dest="gitwash_url",
+        help=f"URL to gitwash repository - default {GITWASH_CENTRAL}",
+        default=GITWASH_CENTRAL,
+        metavar="GITWASH_URL",
+    )
+    parser.add_option(
+        "--gitwash-branch",
+        dest="gitwash_branch",
+        help=f"branch in gitwash repository - default {GITWASH_BRANCH}",
+        default=GITWASH_BRANCH,
+        metavar="GITWASH_BRANCH",
+    )
     parser.add_option("--source-suffix", dest="source_suffix",
                       help="suffix of ReST source files - default '.rst'",
                       default='.rst',

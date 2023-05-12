@@ -36,9 +36,9 @@ class TestCore:
 
     def test_find_cores(self):
         cores=nx.find_cores(self.G)
-        nodes_by_core=[]
-        for val in [0,1,2,3]:
-            nodes_by_core.append( sorted([k for k in cores if cores[k]==val]))
+        nodes_by_core = [
+            sorted([k for k in cores if cores[k] == val]) for val in [0, 1, 2, 3]
+        ]
         assert_equal(nodes_by_core[0],[21])
         assert_equal(nodes_by_core[1],[17, 18, 19, 20])
         assert_equal(nodes_by_core[2],[9, 10, 11, 12, 13, 14, 15, 16])
@@ -50,9 +50,9 @@ class TestCore:
 
     def test_find_cores2(self):
         cores=nx.find_cores(self.H)
-        nodes_by_core=[]
-        for val in [0,1,2]:
-            nodes_by_core.append( sorted([k for k in cores if cores[k]==val]))
+        nodes_by_core = [
+            sorted([k for k in cores if cores[k] == val]) for val in [0, 1, 2]
+        ]
         assert_equal(nodes_by_core[0],[0])
         assert_equal(nodes_by_core[1],[1, 3])
         assert_equal(nodes_by_core[2],[2, 4, 5, 6])

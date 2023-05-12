@@ -30,7 +30,7 @@ def validate_flows(G, s, t, flowDict, solnValue, capacity, flow_func):
     for u in G:
         assert_equal(set(G[u]), set(flowDict[u]),
                      msg=msg.format(flow_func.__name__))
-    excess = dict((u, 0) for u in flowDict)
+    excess = {u: 0 for u in flowDict}
     for u in flowDict:
         for v, flow in flowDict[u].items():
             if capacity in G[u][v]:
@@ -358,7 +358,7 @@ class TestMaxFlowMinCutInterface:
         self.H = H
 
     def test_flow_func_not_callable(self):
-        elements = ['this_should_be_callable', 10, set([1,2,3])]
+        elements = ['this_should_be_callable', 10, {1, 2, 3}]
         G = nx.Graph()
         G.add_weighted_edges_from([(0,1,1),(1,2,1),(2,3,1)], weight='capacity')
         for flow_func in interface_funcs:
@@ -415,7 +415,7 @@ class TestMaxFlowMinCutInterface:
         R = build_residual_network(G, 'capacity')
         for interface_func in interface_funcs:
             for flow_func in flow_funcs:
-                for i in range(3):
+                for _ in range(3):
                     result = interface_func(G, 'x', 'y', flow_func=flow_func,
                                             residual=R)
                     if interface_func in max_min_funcs:
@@ -468,8 +468,7 @@ class TestCutoff:
 
     def test_complete_graph_cutoff(self):
         G = nx.complete_graph(5)
-        nx.set_edge_attributes(G, 'capacity', 
-                               dict(((u, v), 1) for u, v in G.edges()))
+        nx.set_edge_attributes(G, 'capacity', {(u, v): 1 for u, v in G.edges()})
         for flow_func in [shortest_augmenting_path, edmonds_karp]:
             for cutoff in [3, 2, 1]:
                 result = nx.maximum_flow_value(G, 0, 4, flow_func=flow_func,

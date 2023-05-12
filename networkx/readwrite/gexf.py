@@ -116,8 +116,7 @@ def generate_gexf(G, encoding='utf-8',prettyprint=True,version='1.1draft'):
     writer = GEXFWriter(encoding=encoding,prettyprint=prettyprint,
                         version=version)
     writer.add_graph(G)
-    for line in str(writer).splitlines():
-        yield line
+    yield from str(writer).splitlines()
 
 @open_file(0,mode='rb')
 def read_gexf(path,node_type=None,relabel=False,version='1.1draft'):
@@ -155,11 +154,7 @@ def read_gexf(path,node_type=None,relabel=False,version='1.1draft'):
     .. [1] GEXF graph format, http://gexf.net/format/
     """
     reader = GEXFReader(node_type=node_type,version=version)
-    if relabel:
-        G=relabel_gexf_graph(reader(path))
-    else:
-        G=reader(path)
-    return G
+    return relabel_gexf_graph(reader(path)) if relabel else reader(path)
 
 class GEXF(object):
 #    global register_namespace
@@ -230,7 +225,7 @@ class GEXF(object):
     def set_version(self,version):
         d=self.versions.get(version)
         if d is None:
-            raise nx.NetworkXError('Unknown GEXF version %s'%version)
+            raise nx.NetworkXError(f'Unknown GEXF version {version}')
         self.NS_GEXF = d['NS_GEXF']
         self.NS_VIZ = d['NS_VIZ']
         self.NS_XSI = d['NS_XSI']
@@ -265,9 +260,7 @@ class GEXFWriter(GEXF):
         self.edge_id=itertools.count()
         self.attr_id=itertools.count()
         # default attributes are stored in dictionaries
-        self.attr={}
-        self.attr['node']={}
-        self.attr['edge']={}
+        self.attr = {'node': {}, 'edge': {}}
         self.attr['node']['dynamic']={}
         self.attr['node']['static']={}
         self.attr['edge']['dynamic']={}
@@ -279,21 +272,13 @@ class GEXFWriter(GEXF):
     def __str__(self):
         if self.prettyprint:
             self.indent(self.xml)
-        s=tostring(self.xml).decode(self.encoding)
-        return s
+        return tostring(self.xml).decode(self.encoding)
 
     def add_graph(self, G):
         # set graph attributes
-        if G.graph.get('mode')=='dynamic':
-            mode='dynamic'
-        else:
-            mode='static'
-
+        mode = 'dynamic' if G.graph.get('mode')=='dynamic' else 'static'
         # Add a graph element to the XML
-        if G.is_directed():
-            default='directed'
-        else:
-            default='undirected'
+        default = 'directed' if G.is_directed() else 'undirected'
         graph_element = Element("graph",defaultedgetype=default,mode=mode)
         self.graph_element=graph_element
         self.add_nodes(G,graph_element)
@@ -431,10 +416,7 @@ class GEXFWriter(GEXF):
                                            node_or_edge, default, mode)
                 e=Element("attvalue")
                 e.attrib['for']=attr_id
-                if type(v) == bool:
-                    e.attrib['value']=make_str(v).lower()
-                else:
-                    e.attrib['value']=make_str(v)
+                e.attrib['value'] = make_str(v).lower() if type(v) == bool else make_str(v)
                 attvalues.append(e)
         xml_obj.append(attvalues)
         return data
@@ -473,8 +455,7 @@ class GEXFWriter(GEXF):
 
 
     def add_viz(self,element,node_data):
-        viz=node_data.pop('viz',False)
-        if viz:
+        if viz := node_data.pop('viz', False):
             color=viz.get('color')
             if color is not None:
                 if self.VERSION=='1.1':
@@ -522,8 +503,7 @@ class GEXFWriter(GEXF):
         return node_data
 
     def add_parents(self,node_element,node_data):
-        parents=node_data.pop('parents',False)
-        if parents:
+        if parents := node_data.pop('parents', False):
             parents_element=Element('parents')
             for p in parents:
                 e=Element('parent')
@@ -533,8 +513,7 @@ class GEXFWriter(GEXF):
         return node_data
 
     def add_slices(self,node_or_edge_element,node_or_edge_data):
-        slices=node_or_edge_data.pop('slices',False)
-        if slices:
+        if slices := node_or_edge_data.pop('slices', False):
             slices_element=Element('slices')
             for start,end in slices:
                 e=Element('slice',start=str(start),end=str(end))
@@ -544,8 +523,7 @@ class GEXFWriter(GEXF):
 
 
     def add_spells(self,node_or_edge_element,node_or_edge_data):
-        spells=node_or_edge_data.pop('spells',False)
-        if spells:
+        if spells := node_or_edge_data.pop('spells', False):
             spells_element=Element('spells')
             for start,end in spells:
                 e=Element('spell')
@@ -562,16 +540,15 @@ class GEXFWriter(GEXF):
 
     def alter_graph_mode_timeformat(self, start_or_end):
         # if 'start' or 'end' appears, alter Graph mode to dynamic and set timeformat
-        if self.graph_element.get('mode') == 'static':
-            if start_or_end is not None:
-                if type(start_or_end) == str:
-                    timeformat = 'date'
-                elif type(start_or_end) == float:
-                    timeformat = 'double'
-                elif type(start_or_end) == int:
-                    timeformat = 'long'
-                self.graph_element.set('timeformat', timeformat)
-                self.graph_element.set('mode', 'dynamic')
+        if self.graph_element.get('mode') == 'static' and start_or_end is not None:
+            if type(start_or_end) == str:
+                timeformat = 'date'
+            elif type(start_or_end) == float:
+                timeformat = 'double'
+            elif type(start_or_end) == int:
+                timeformat = 'long'
+            self.graph_element.set('timeformat', timeformat)
+            self.graph_element.set('mode', 'dynamic')
 
 
     def write(self, fh):
@@ -587,16 +564,15 @@ class GEXFWriter(GEXF):
         i = "\n" + level*"  "
         if len(elem):
             if not elem.text or not elem.text.strip():
-                elem.text = i + "  "
+                elem.text = f"{i}  "
             if not elem.tail or not elem.tail.strip():
                 elem.tail = i
             for elem in elem:
                 self.indent(elem, level+1)
             if not elem.tail or not elem.tail.strip():
                 elem.tail = i
-        else:
-            if level and (not elem.tail or not elem.tail.strip()):
-                elem.tail = i
+        elif level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
 
 
 class GEXFReader(GEXF):
@@ -630,11 +606,7 @@ class GEXFReader(GEXF):
     def make_graph(self, graph_xml):
         # start with empty DiGraph or MultiDiGraph
         edgedefault = graph_xml.get("defaultedgetype", None)
-        if edgedefault=='directed':
-            G=nx.MultiDiGraph()
-        else:
-            G=nx.MultiGraph()
-
+        G = nx.MultiDiGraph() if edgedefault=='directed' else nx.MultiGraph()
         # graph attributes
         graph_start=graph_xml.get('start')
         if graph_start is not None:
@@ -643,11 +615,7 @@ class GEXFReader(GEXF):
         if graph_end is not None:
             G.graph['end']=graph_end
         graph_mode=graph_xml.get("mode", "")
-        if graph_mode=='dynamic':
-            G.graph['mode']='dynamic'
-        else:
-            G.graph['mode']='static'
-
+        G.graph['mode'] = 'dynamic' if graph_mode=='dynamic' else 'static'
         # timeformat
         self.timeformat=graph_xml.get('timeformat')
         if self.timeformat == 'date':
@@ -664,13 +632,13 @@ class GEXFReader(GEXF):
             attr_class = a.get("class")
             if attr_class=='node':
                 na,nd = self.find_gexf_attributes(a)
-                node_attr.update(na)
-                node_default.update(nd)
+                node_attr |= na
+                node_default |= nd
                 G.graph['node_default']=node_default
             elif attr_class=='edge':
                 ea,ed = self.find_gexf_attributes(a)
-                edge_attr.update(ea)
-                edge_default.update(ed)
+                edge_attr |= ea
+                edge_default |= ed
                 G.graph['edge_default']=edge_default
             else:
                 raise # unknown attribute class
@@ -695,12 +663,8 @@ class GEXFReader(GEXF):
             for edge_xml in edges_element.findall("{%s}edge" % self.NS_GEXF):
                 self.add_edge(G, edge_xml, edge_attr)
 
-        # switch to Graph or DiGraph if no parallel edges were found.
         if self.simple_graph:
-            if G.is_directed():
-                G=nx.DiGraph(G)
-            else:
-                G=nx.Graph(G)
+            G = nx.DiGraph(G) if G.is_directed() else nx.Graph(G)
         return G
 
     def add_node(self, G, node_xml, node_attr, node_pid=None):
@@ -786,7 +750,7 @@ class GEXFReader(GEXF):
                              'y':float(position.get('y',0)),
                              'z':float(position.get('z',0))}
 
-        if len(viz)>0:
+        if viz:
             data['viz']=viz
         return data
 
@@ -889,7 +853,7 @@ class GEXFReader(GEXF):
                 try: # should be in our gexf_keys dictionary
                     title=gexf_keys[key]['title']
                 except KeyError:
-                    raise nx.NetworkXError("No attribute defined for=%s"%key)
+                    raise nx.NetworkXError(f"No attribute defined for={key}")
                 atype=gexf_keys[key]['type']
                 value=a.get('value')
                 if atype=='boolean':

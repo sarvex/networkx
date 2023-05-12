@@ -92,7 +92,7 @@ def to_networkx_graph(data,create_using=None,multigraph_input=False):
             if hasattr(data,'graph') and isinstance(data.graph,dict):
                 result.graph=data.graph.copy()
             if hasattr(data,'node') and isinstance(data.node,dict):
-                result.node=dict( (n,dd.copy()) for n,dd in data.node.items() )
+                result.node = {n: dd.copy() for n,dd in data.node.items()}
             return result
         except:
             raise nx.NetworkXError("Input is not a correct NetworkX graph.")
@@ -116,10 +116,11 @@ def to_networkx_graph(data,create_using=None,multigraph_input=False):
                 raise TypeError("Input is not known type.")
 
     # list or generator of edges
-    if (isinstance(data,list)
-        or isinstance(data,tuple)
-        or hasattr(data,'next')
-        or hasattr(data, '__next__')):
+    if (
+        isinstance(data, (list, tuple))
+        or hasattr(data, 'next')
+        or hasattr(data, '__next__')
+    ):
         try:
             return from_edgelist(data,create_using=create_using)
         except:
@@ -141,8 +142,7 @@ def to_networkx_graph(data,create_using=None,multigraph_input=False):
     # numpy matrix or ndarray
     try:
         import numpy
-        if isinstance(data,numpy.matrix) or \
-               isinstance(data,numpy.ndarray):
+        if isinstance(data, (numpy.matrix, numpy.ndarray)):
             try:
                 return nx.from_numpy_matrix(data,create_using=create_using)
             except:
@@ -168,8 +168,6 @@ def to_networkx_graph(data,create_using=None,multigraph_input=False):
 
     raise nx.NetworkXError(\
           "Input is not a known data type for conversion.")
-
-    return
 
 
 def convert_to_undirected(G):
@@ -201,10 +199,9 @@ def to_dict_of_lists(G,nodelist=None):
     if nodelist is None:
         nodelist=G
 
-    d = {}
-    for n in nodelist:
-        d[n]=[nbr for nbr in G.neighbors(n) if nbr in nodelist]
-    return d
+    return {
+        n: [nbr for nbr in G.neighbors(n) if nbr in nodelist] for n in nodelist
+    }
 
 def from_dict_of_lists(d,create_using=None):
     """Return a graph from a dictionary of lists.
@@ -270,17 +267,16 @@ def to_dict_of_dicts(G,nodelist=None,edge_data=None):
         else: # edge_data is not None
             for u,nbrdict in G.adjacency_iter():
                 dod[u]=dod.fromkeys(nbrdict, edge_data)
-    else: # nodelist is not None
-        if edge_data is None:
-            for u in nodelist:
-                dod[u]={}
-                for v,data in ((v,data) for v,data in G[u].items() if v in nodelist):
-                    dod[u][v]=data
-        else: # nodelist and edge_data are not None
-            for u in nodelist:
-                dod[u]={}
-                for v in ( v for v in G[u] if v in nodelist):
-                    dod[u][v]=edge_data
+    elif edge_data is None:
+        for u in nodelist:
+            dod[u]={}
+            for v,data in ((v,data) for v,data in G[u].items() if v in nodelist):
+                dod[u][v]=data
+    else: # nodelist and edge_data are not None
+        for u in nodelist:
+            dod[u]={}
+            for v in ( v for v in G[u] if v in nodelist):
+                dod[u][v]=edge_data
     return dod
 
 def from_dict_of_dicts(d,create_using=None,multigraph_input=False):
@@ -327,8 +323,8 @@ def from_dict_of_dicts(d,create_using=None,multigraph_input=False):
                                   for key,data in datadict.items()
                                 )
         else: # Undirected
+            seen=set()   # don't add both directions of undirected graph
             if G.is_multigraph():
-                seen=set()   # don't add both directions of undirected graph
                 for u,nbrs in d.items():
                     for v,datadict in nbrs.items():
                         if (u,v) not in seen:
@@ -337,7 +333,6 @@ def from_dict_of_dicts(d,create_using=None,multigraph_input=False):
                                               )
                             seen.add((v,u))
             else:
-                seen=set()   # don't add both directions of undirected graph
                 for u,nbrs in d.items():
                     for v,datadict in nbrs.items():
                         if (u,v) not in seen:
@@ -345,21 +340,20 @@ def from_dict_of_dicts(d,create_using=None,multigraph_input=False):
                                         for key,data in datadict.items() )
                             seen.add((v,u))
 
-    else: # not a multigraph to multigraph transfer
-        if G.is_multigraph() and not G.is_directed():
-            # d can have both representations u-v, v-u in dict.  Only add one.
-            # We don't need this check for digraphs since we add both directions,
-            # or for Graph() since it is done implicitly (parallel edges not allowed)
-            seen=set()
-            for u,nbrs in d.items():
-                for v,data in nbrs.items():
-                    if (u,v) not in seen:
-                        G.add_edge(u,v,attr_dict=data)
-                    seen.add((v,u))
-        else:
-            G.add_edges_from( ( (u,v,data)
-                                for u,nbrs in d.items()
-                                for v,data in nbrs.items()) )
+    elif G.is_multigraph() and not G.is_directed():
+        # d can have both representations u-v, v-u in dict.  Only add one.
+        # We don't need this check for digraphs since we add both directions,
+        # or for Graph() since it is done implicitly (parallel edges not allowed)
+        seen=set()
+        for u,nbrs in d.items():
+            for v,data in nbrs.items():
+                if (u,v) not in seen:
+                    G.add_edge(u,v,attr_dict=data)
+                seen.add((v,u))
+    else:
+        G.add_edges_from( ( (u,v,data)
+                            for u,nbrs in d.items()
+                            for v,data in nbrs.items()) )
     return G
 
 def to_edgelist(G,nodelist=None):
@@ -374,10 +368,7 @@ def to_edgelist(G,nodelist=None):
        Use only nodes specified in nodelist
 
     """
-    if nodelist is None:
-        return G.edges(data=True)
-    else:
-        return G.edges(nodelist,data=True)
+    return G.edges(data=True) if nodelist is None else G.edges(nodelist,data=True)
 
 def from_edgelist(edgelist,create_using=None):
     """Return a graph from a list of edges.

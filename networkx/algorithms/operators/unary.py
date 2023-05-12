@@ -34,7 +34,7 @@ def complement(G, name=None):
     Graph, node, and edge data are not propagated to the new graph.
     """
     if name is None:
-        name = "complement(%s)"%(G.name)
+        name = f"complement({G.name})"
     R = G.__class__()
     R.name = name
     R.add_nodes_from(G)

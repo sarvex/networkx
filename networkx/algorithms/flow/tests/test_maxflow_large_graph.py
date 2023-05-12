@@ -40,34 +40,34 @@ def gen_pyramid(N):
 
 
 def read_graph(name):
-    dirname = os.path.dirname(__file__)
-    path = os.path.join(dirname, name + '.gpickle.bz2')
-    return nx.read_gpickle(path)
+        dirname = os.path.dirname(__file__)
+        path = os.path.join(dirname, f'{name}.gpickle.bz2')
+        return nx.read_gpickle(path)
 
 
 def validate_flows(G, s, t, soln_value, R, flow_func):
-    flow_value = R.graph['flow_value']
-    flow_dict = build_flow_dict(G, R)
-    assert_equal(soln_value, flow_value, msg=msg.format(flow_func.__name__))
-    assert_equal(set(G), set(flow_dict), msg=msg.format(flow_func.__name__))
-    for u in G:
-        assert_equal(set(G[u]), set(flow_dict[u]),
-                     msg=msg.format(flow_func.__name__))
-    excess = dict((u, 0) for u in flow_dict)
-    for u in flow_dict:
-        for v, flow in flow_dict[u].items():
-            ok_(flow <= G[u][v].get('capacity', float('inf')),
-                msg=msg.format(flow_func.__name__))
-            ok_(flow >= 0, msg=msg.format(flow_func.__name__))
-            excess[u] -= flow
-            excess[v] += flow
-    for u, exc in excess.items():
-        if u == s:
-            assert_equal(exc, -soln_value, msg=msg.format(flow_func.__name__))
-        elif u == t:
-            assert_equal(exc, soln_value, msg=msg.format(flow_func.__name__))
-        else:
-            assert_equal(exc, 0, msg=msg.format(flow_func.__name__))
+        flow_value = R.graph['flow_value']
+        flow_dict = build_flow_dict(G, R)
+        assert_equal(soln_value, flow_value, msg=msg.format(flow_func.__name__))
+        assert_equal(set(G), set(flow_dict), msg=msg.format(flow_func.__name__))
+        for u in G:
+            assert_equal(set(G[u]), set(flow_dict[u]),
+                         msg=msg.format(flow_func.__name__))
+        excess = {u: 0 for u in flow_dict}
+        for u in flow_dict:
+            for v, flow in flow_dict[u].items():
+                ok_(flow <= G[u][v].get('capacity', float('inf')),
+                    msg=msg.format(flow_func.__name__))
+                ok_(flow >= 0, msg=msg.format(flow_func.__name__))
+                excess[u] -= flow
+                excess[v] += flow
+        for u, exc in excess.items():
+            if u == s:
+                assert_equal(exc, -soln_value, msg=msg.format(flow_func.__name__))
+            elif u == t:
+                assert_equal(exc, soln_value, msg=msg.format(flow_func.__name__))
+            else:
+                assert_equal(exc, 0, msg=msg.format(flow_func.__name__))
 
 
 class TestMaxflowLargeGraph:

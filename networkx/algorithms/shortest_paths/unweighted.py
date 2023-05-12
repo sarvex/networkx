@@ -60,7 +60,7 @@ def single_source_shortest_path_length(G,source,cutoff=None):
         for v in thislevel:
             if v not in seen:
                 seen[v]=level # set the level of vertex v
-                nextlevel.update(G[v]) # add neighbors of v
+                nextlevel |= G[v]
         if (cutoff is not None and cutoff <= level):  break
         level=level+1
     return seen  # return all path lengths as dictionary
@@ -95,10 +95,7 @@ def all_pairs_shortest_path_length(G,cutoff=None):
     {0: 1, 1: 0, 2: 1, 3: 2, 4: 3}
 
     """
-    paths={}
-    for n in G:
-        paths[n]=single_source_shortest_path_length(G,n,cutoff=cutoff)
-    return paths
+    return {n: single_source_shortest_path_length(G,n,cutoff=cutoff) for n in G}
 
 
 
@@ -200,7 +197,7 @@ def _bidirectional_pred_succ(G, source, target):
                         reverse_fringe.append(w)
                     if w in pred:  return pred,succ,w # found path
 
-    raise nx.NetworkXNoPath("No path between %s and %s." % (source, target))
+    raise nx.NetworkXNoPath(f"No path between {source} and {target}.")
 
 
 def single_source_shortest_path(G,source,cutoff=None):
@@ -285,10 +282,7 @@ def all_pairs_shortest_path(G,cutoff=None):
     floyd_warshall()
 
     """
-    paths={}
-    for n in G:
-        paths[n]=single_source_shortest_path(G,n,cutoff=cutoff)
-    return paths
+    return {n: single_source_shortest_path(G,n,cutoff=cutoff) for n in G}
 
 
 
@@ -345,16 +339,9 @@ def predecessor(G,source,target=None,cutoff=None,return_seen=None):
         if (cutoff and cutoff <= level):
             break
 
-    if target is not None:
-        if return_seen:
-            if not target in pred: return ([],-1)  # No predecessor
-            return (pred[target],seen[target])
-        else:
-            if not target in pred: return []  # No predecessor
-            return pred[target]
-    else:
-        if return_seen:
-            return (pred,seen)
-        else:
-            return pred
+    if target is None:
+        return (pred, seen) if return_seen else pred
+    if return_seen:
+        return ([], -1) if target not in pred else (pred[target], seen[target])
+    return [] if target not in pred else pred[target]
 

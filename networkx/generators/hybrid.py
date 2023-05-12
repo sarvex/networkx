@@ -28,7 +28,7 @@ def kl_connected_subgraph(G,k,l,low_memory=False,same_as_graph=False):
         pflag for if G is kl-connected
     """
     H=copy.deepcopy(G)    # subgraph we construct by removing from G
-    
+
     graphOK=True
     deleted_some=True # hack to start off the while loop
     while deleted_some:
@@ -37,8 +37,8 @@ def kl_connected_subgraph(G,k,l,low_memory=False,same_as_graph=False):
             (u,v)=edge
             ### Get copy of graph needed for this search
             if low_memory:
-                verts=set([u,v])
-                for i in range(k):
+                verts = {u, v}
+                for _ in range(k):
                     [verts.update(G.neighbors(w)) for w in verts.copy()]
                 G2=G.subgraph(list(verts))
             else:
@@ -70,9 +70,7 @@ def kl_connected_subgraph(G,k,l,low_memory=False,same_as_graph=False):
                 if graphOK: graphOK=False
     # We looked through all edges and removed none of them.
     # So, H is the maximal (k,l)-connected subgraph of G
-    if same_as_graph:
-        return (H,graphOK)
-    return H
+    return (H, graphOK) if same_as_graph else H
 
 def is_kl_connected(G,k,l,low_memory=False):
     """Returns True if G is kl connected."""
@@ -81,8 +79,8 @@ def is_kl_connected(G,k,l,low_memory=False):
         (u,v)=edge
         ### Get copy of graph needed for this search
         if low_memory:
-            verts=set([u,v])
-            for i in range(k):
+            verts = {u, v}
+            for _ in range(k):
                 [verts.update(G.neighbors(w)) for w in verts.copy()]
             G2=G.subgraph(verts)
         else:

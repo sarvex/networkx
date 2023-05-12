@@ -97,11 +97,7 @@ def pagerank(G, alpha=0.85, personalization=None,
     if len(G) == 0:
         return {}
 
-    if not G.is_directed():
-        D = G.to_directed()
-    else:
-        D = G
-
+    D = G.to_directed() if not G.is_directed() else G
     # Create a copy in (right) stochastic form
     W = nx.stochastic_graph(D, weight=weight)
     N = W.number_of_nodes()
@@ -112,31 +108,29 @@ def pagerank(G, alpha=0.85, personalization=None,
     else:
         # Normalized nstart vector
         s = float(sum(nstart.values()))
-        x = dict((k, v / s) for k, v in nstart.items())
+        x = {k: v / s for k, v in nstart.items()}
 
     if personalization is None:
         # Assign uniform personalization vector if not given
         p = dict.fromkeys(W, 1.0 / N)
     else:
-        missing = set(G) - set(personalization)
-        if missing:
-            raise NetworkXError('Personalization dictionary '
-                                'must have a value for every node. '
-                                'Missing nodes %s' % missing)
+        if missing := set(G) - set(personalization):
+            raise NetworkXError(
+                f'Personalization dictionary must have a value for every node. Missing nodes {missing}'
+            )
         s = float(sum(personalization.values()))
-        p = dict((k, v / s) for k, v in personalization.items())
+        p = {k: v / s for k, v in personalization.items()}
 
     if dangling is None:
         # Use personalization vector if dangling vector not specified
         dangling_weights = p
     else:
-        missing = set(G) - set(dangling)
-        if missing:
-            raise NetworkXError('Dangling node dictionary '
-                                'must have a value for every node. '
-                                'Missing nodes %s' % missing)
+        if missing := set(G) - set(dangling):
+            raise NetworkXError(
+                f'Dangling node dictionary must have a value for every node. Missing nodes {missing}'
+            )
         s = float(sum(dangling.values()))
-        dangling_weights = dict((k, v/s) for k, v in dangling.items())
+        dangling_weights = {k: v/s for k, v in dangling.items()}
     dangling_nodes = [n for n in W if W.out_degree(n, weight=weight) == 0.0]
 
     # power iteration: make up to max_iter iterations
@@ -151,7 +145,7 @@ def pagerank(G, alpha=0.85, personalization=None,
                 x[nbr] += alpha * xlast[n] * W[n][nbr][weight]
             x[n] += danglesum * dangling_weights[n] + (1.0 - alpha) * p[n]
         # check convergence, l1 norm
-        err = sum([abs(x[n] - xlast[n]) for n in x])
+        err = sum(abs(x[n] - xlast[n]) for n in x)
         if err < N*tol:
             return x
     raise NetworkXError('pagerank: power iteration failed to converge '
@@ -228,11 +222,10 @@ def google_matrix(G, alpha=0.85, personalization=None,
     if personalization is None:
         p = np.repeat(1.0 / N, N)
     else:
-        missing = set(nodelist) - set(personalization)
-        if missing:
-            raise NetworkXError('Personalization vector dictionary '
-                                'must have a value for every node. '
-                                'Missing nodes %s' % missing)
+        if missing := set(nodelist) - set(personalization):
+            raise NetworkXError(
+                f'Personalization vector dictionary must have a value for every node. Missing nodes {missing}'
+            )
         p = np.array([personalization[n] for n in nodelist], dtype=float)
         p /= p.sum()
 
@@ -240,11 +233,10 @@ def google_matrix(G, alpha=0.85, personalization=None,
     if dangling is None:
         dangling_weights = p
     else:
-        missing = set(nodelist) - set(dangling)
-        if missing:
-            raise NetworkXError('Dangling node dictionary '
-                                'must have a value for every node. '
-                                'Missing nodes %s' % missing)
+        if missing := set(nodelist) - set(dangling):
+            raise NetworkXError(
+                f'Dangling node dictionary must have a value for every node. Missing nodes {missing}'
+            )
         # Convert the dangling dictionary into an array in nodelist order
         dangling_weights = np.array([dangling[n] for n in nodelist],
                                     dtype=float)
@@ -435,11 +427,10 @@ def pagerank_scipy(G, alpha=0.85, personalization=None,
     if personalization is None:
         p = scipy.repeat(1.0 / N, N)
     else:
-        missing = set(nodelist) - set(personalization)
-        if missing:
-            raise NetworkXError('Personalization vector dictionary '
-                                'must have a value for every node. '
-                                'Missing nodes %s' % missing)
+        if missing := set(nodelist) - set(personalization):
+            raise NetworkXError(
+                f'Personalization vector dictionary must have a value for every node. Missing nodes {missing}'
+            )
         p = scipy.array([personalization[n] for n in nodelist],
                         dtype=float)
         p = p / p.sum()
@@ -448,11 +439,10 @@ def pagerank_scipy(G, alpha=0.85, personalization=None,
     if dangling is None:
         dangling_weights = p
     else:
-        missing = set(nodelist) - set(dangling)
-        if missing:
-            raise NetworkXError('Dangling node dictionary '
-                                'must have a value for every node. '
-                                'Missing nodes %s' % missing)
+        if missing := set(nodelist) - set(dangling):
+            raise NetworkXError(
+                f'Dangling node dictionary must have a value for every node. Missing nodes {missing}'
+            )
         # Convert the dangling dictionary into an array in nodelist order
         dangling_weights = scipy.array([dangling[n] for n in nodelist],
                                        dtype=float)

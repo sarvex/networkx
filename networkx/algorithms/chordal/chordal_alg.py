@@ -75,10 +75,7 @@ def is_chordal(G):
         raise nx.NetworkXError('Directed graphs not supported')
     if G.is_multigraph():
         raise nx.NetworkXError('Multiply connected graphs not supported.')
-    if len(_find_chordality_breaker(G))==0:
-        return True
-    else:
-        return False
+    return len(_find_chordality_breaker(G)) == 0
 
 def find_induced_nodes(G,s,t,treewidth_bound=sys.maxsize):
     """Returns the set of induced nodes in the path from s to t. 
@@ -136,18 +133,16 @@ def find_induced_nodes(G,s,t,treewidth_bound=sys.maxsize):
     """
     if not is_chordal(G):
         raise nx.NetworkXError("Input graph is not chordal.")
- 
+
     H = nx.Graph(G)
     H.add_edge(s,t)
     I = set()
-    triplet =  _find_chordality_breaker(H,s,treewidth_bound)
-    while triplet:
+    while triplet := _find_chordality_breaker(H, s, treewidth_bound):
         (u,v,w) = triplet
         I.update(triplet)
         for n in triplet:
             if n!=s:
                 H.add_edge(s,n)
-        triplet =  _find_chordality_breaker(H,s,treewidth_bound)
     if I:
         # Add t and the second node in the induced path from s to t.
         I.add(t)
@@ -258,8 +253,7 @@ def _find_missing_edge(G):
     """ Given a non-complete graph G, returns a missing edge."""
     nodes=set(G)
     for u in G:
-        missing=nodes-set(list(G[u].keys())+[u])
-        if missing:
+        if missing := nodes - set(list(G[u].keys()) + [u]):
             return (u,missing.pop())
 
 
@@ -290,7 +284,7 @@ def _find_chordality_breaker(G,s=None,treewidth_bound=sys.maxsize):
     if s is None:
         s = random.choice(list(unnumbered))
     unnumbered.remove(s)
-    numbered = set([s])
+    numbered = {s}
 #    current_treewidth = None
     current_treewidth = -1
     while unnumbered:# and current_treewidth <= treewidth_bound:
@@ -303,8 +297,9 @@ def _find_chordality_breaker(G,s=None,treewidth_bound=sys.maxsize):
             # The graph seems to be chordal by now. We update the treewidth
             current_treewidth = max(current_treewidth,len(clique_wanna_be))
             if current_treewidth > treewidth_bound:
-                raise nx.NetworkXTreewidthBoundExceeded(\
-                    "treewidth_bound exceeded: %s"%current_treewidth)
+                raise nx.NetworkXTreewidthBoundExceeded(
+                    f"treewidth_bound exceeded: {current_treewidth}"
+                )
         else:
             # sg is not a clique,
             # look for an edge that is not included in sg
@@ -318,14 +313,14 @@ def _connected_chordal_graph_cliques(G):
     """Return the set of maximal cliques of a connected chordal graph."""
     if G.number_of_nodes() == 1:
         x = frozenset(G.nodes())
-        return set([x])
+        return {x}
     else:
         cliques = set()
         unnumbered = set(G.nodes())
         v = random.choice(list(unnumbered))
         unnumbered.remove(v)
-        numbered = set([v])
-        clique_wanna_be = set([v])
+        numbered = {v}
+        clique_wanna_be = {v}
         while unnumbered:
             v = _max_cardinality_node(G,unnumbered,numbered)
             unnumbered.remove(v)

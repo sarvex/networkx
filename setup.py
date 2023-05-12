@@ -7,6 +7,7 @@ You can install networkx with
 
 python setup.py install
 """
+
 from glob import glob
 import os
 import sys
@@ -59,7 +60,7 @@ packages=["networkx",
           "networkx.testing",
           "networkx.utils"]
 
-docdirbase  = 'share/doc/networkx-%s' % version
+docdirbase = f'share/doc/networkx-{version}'
 # add basic documentation
 data = [(docdirbase, glob("*.txt"))]
 # add examples

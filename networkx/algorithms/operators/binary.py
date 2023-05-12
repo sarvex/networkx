@@ -53,12 +53,12 @@ def union(G, H, rename=(None, None), name=None):
     --------
     disjoint_union
     """
-    if not G.is_multigraph() == H.is_multigraph():
+    if G.is_multigraph() != H.is_multigraph():
         raise nx.NetworkXError('G and H must both be graphs or multigraphs.')
     # Union is the same type as G
     R = G.__class__()
     if name is None:
-        name = "union( %s, %s )"%(G.name,H.name)
+        name = f"union( {G.name}, {H.name} )"
     R.name = name
 
     # rename graph to obtain disjoint node labels
@@ -66,12 +66,11 @@ def union(G, H, rename=(None, None), name=None):
         if prefix is None:
             return graph
         def label(x):
-            if is_string_like(x):
-                name = prefix+x
-            else:
-                name = prefix+repr(x)
+            name = prefix+x if is_string_like(x) else prefix+repr(x)
             return name
+
         return nx.relabel_nodes(graph, label)
+
     G = add_prefix(G, rename[0])
     H = add_prefix(H, rename[1])
     if set(G) & set(H):
@@ -132,7 +131,7 @@ def disjoint_union(G, H):
     R1 = nx.convert_node_labels_to_integers(G)
     R2 = nx.convert_node_labels_to_integers(H, first_label=len(R1))
     R = union(R1, R2)
-    R.name = "disjoint_union( %s, %s )"%(G.name, H.name)
+    R.name = f"disjoint_union( {G.name}, {H.name} )"
     R.graph.update(G.graph)
     R.graph.update(H.graph)
     return R
@@ -168,25 +167,19 @@ def intersection(G, H):
     # create new graph
     R = nx.create_empty_copy(G)
 
-    R.name = "Intersection of (%s and %s)"%(G.name, H.name)
-    if not G.is_multigraph() == H.is_multigraph():
+    R.name = f"Intersection of ({G.name} and {H.name})"
+    if G.is_multigraph() != H.is_multigraph():
         raise nx.NetworkXError('G and H must both be graphs or multigraphs.')
     if set(G) != set(H):
         raise nx.NetworkXError("Node sets of graphs are not equal")
 
     if G.number_of_edges() <= H.number_of_edges():
-        if G.is_multigraph():
-            edges = G.edges_iter(keys=True)
-        else:
-            edges = G.edges_iter()
+        edges = G.edges_iter(keys=True) if G.is_multigraph() else G.edges_iter()
         for e in edges:
             if H.has_edge(*e):
                 R.add_edge(*e)
     else:
-        if H.is_multigraph():
-            edges = H.edges_iter(keys=True)
-        else:
-            edges = H.edges_iter()
+        edges = H.edges_iter(keys=True) if H.is_multigraph() else H.edges_iter()
         for e in edges:
             if G.has_edge(*e):
                 R.add_edge(*e)
@@ -220,18 +213,15 @@ def difference(G, H):
     >>> R.remove_nodes_from(n for n in G if n in H)
     """
     # create new graph
-    if not G.is_multigraph() == H.is_multigraph():
+    if G.is_multigraph() != H.is_multigraph():
         raise nx.NetworkXError('G and H must both be graphs or multigraphs.')
     R = nx.create_empty_copy(G)
-    R.name = "Difference of (%s and %s)"%(G.name, H.name)
+    R.name = f"Difference of ({G.name} and {H.name})"
 
     if set(G) != set(H):
         raise nx.NetworkXError("Node sets of graphs not equal")
 
-    if G.is_multigraph():
-        edges = G.edges_iter(keys=True)
-    else:
-        edges = G.edges_iter()
+    edges = G.edges_iter(keys=True) if G.is_multigraph() else G.edges_iter()
     for e in edges:
         if not H.has_edge(*e):
             R.add_edge(*e)
@@ -257,10 +247,10 @@ def symmetric_difference(G, H):
     graph.
     """
     # create new graph
-    if not G.is_multigraph() == H.is_multigraph():
+    if G.is_multigraph() != H.is_multigraph():
         raise nx.NetworkXError('G and H must both be graphs or multigraphs.')
     R = nx.create_empty_copy(G)
-    R.name = "Symmetric difference of (%s and %s)"%(G.name, H.name)
+    R.name = f"Symmetric difference of ({G.name} and {H.name})"
 
     if set(G) != set(H):
         raise nx.NetworkXError("Node sets of graphs not equal")
@@ -270,20 +260,14 @@ def symmetric_difference(G, H):
     nodes = gnodes.symmetric_difference(hnodes)
     R.add_nodes_from(nodes)
 
-    if G.is_multigraph():
-        edges = G.edges_iter(keys=True)
-    else:
-        edges = G.edges_iter()
+    edges = G.edges_iter(keys=True) if G.is_multigraph() else G.edges_iter()
     # we could copy the data here but then this function doesn't
     # match intersection and difference
     for e in edges:
         if not H.has_edge(*e):
             R.add_edge(*e)
 
-    if H.is_multigraph():
-        edges = H.edges_iter(keys=True)
-    else:
-        edges = H.edges_iter()
+    edges = H.edges_iter(keys=True) if H.is_multigraph() else H.edges_iter()
     for e in edges:
         if not G.has_edge(*e):
             R.add_edge(*e)
@@ -312,11 +296,11 @@ def compose(G, H, name=None):
     It is recommended that G and H be either both directed or both undirected.
     Attributes from H take precedent over attributes from G.
     """
-    if not G.is_multigraph() == H.is_multigraph():
+    if G.is_multigraph() != H.is_multigraph():
         raise nx.NetworkXError('G and H must both be graphs or multigraphs.')
 
     if name is None:
-        name = "compose( %s, %s )"%(G.name,H.name)
+        name = f"compose( {G.name}, {H.name} )"
     R = G.__class__()
     R.name = name
     R.add_nodes_from(H.nodes())

@@ -23,11 +23,9 @@ class TestAtlas(object):
         assert_equal(G.number_of_edges(),3)
 
     def test_names(self):
-        i=0
-        for g in self.GAG:
+        for i, g in enumerate(self.GAG):
             name=g.name
             assert_equal(int(name[1:]),i)
-            i+=1
 
     def test_monotone_nodes(self):
         # check for monotone increasing number of nodes

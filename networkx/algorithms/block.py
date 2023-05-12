@@ -62,21 +62,14 @@ def blockmodel(G,partitions,multigraph=False):
     for p1,p2 in zip(part[:-1],part[1:]):
         u.update(p1)
         #if not u.isdisjoint(p2):  # Python 2.6 required
-        if len (u.intersection(p2))>0:
+        if u.intersection(p2):
             raise nx.NetworkXException("Overlapping node partitions.")
 
     # Initialize blockmodel graph
     if multigraph:
-        if G.is_directed():
-            M=nx.MultiDiGraph() 
-        else:
-            M=nx.MultiGraph() 
+        M = nx.MultiDiGraph() if G.is_directed() else nx.MultiGraph()
     else:
-        if G.is_directed():
-            M=nx.DiGraph() 
-        else:
-            M=nx.Graph() 
-        
+        M = nx.DiGraph() if G.is_directed() else nx.Graph()
     # Add nodes and properties to blockmodel            
     # The blockmodel nodes are node-induced subgraphs of G
     # Label them with integers starting at 0
@@ -88,12 +81,12 @@ def blockmodel(G,partitions,multigraph=False):
         M.node[i]['nnodes']=SG.number_of_nodes()
         M.node[i]['nedges']=SG.number_of_edges()
         M.node[i]['density']=nx.density(SG)
-        
+
     # Create mapping between original node labels and new blockmodel node labels
     block_mapping={}
     for n in M:
         nodes_in_block=M.node[n]['graph'].nodes()
-        block_mapping.update(dict.fromkeys(nodes_in_block,n))
+        block_mapping |= dict.fromkeys(nodes_in_block,n)
 
     # Add edges to block graph 
     for u,v,d in G.edges(data=True):

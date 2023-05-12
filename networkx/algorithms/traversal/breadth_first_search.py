@@ -45,7 +45,7 @@ def bfs_edges(G, source, reverse=False):
         neighbors = G.predecessors_iter
     else:
         neighbors = G.neighbors_iter
-    visited = set([source])
+    visited = {source}
     queue = deque([(source, neighbors(source))])
     while queue:
         parent, children = queue[0]
@@ -123,7 +123,7 @@ def bfs_predecessors(G, source):
     Based on http://www.ics.uci.edu/~eppstein/PADS/BFS.py
     by D. Eppstein, July 2004.
     """
-    return dict((t,s) for s,t in bfs_edges(G,source))
+    return {t: s for s,t in bfs_edges(G,source)}
 
 def bfs_successors(G, source):
     """Return dictionary of successors in breadth-first-search from source.

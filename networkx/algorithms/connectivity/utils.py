@@ -43,7 +43,7 @@ def build_auxiliary_node_connectivity(G):
 
     mapping = {}
     H = nx.DiGraph()
-    
+
     for i, node in enumerate(G):
         mapping[node] = i
         H.add_node('%dA' % i, id=node)
@@ -52,9 +52,9 @@ def build_auxiliary_node_connectivity(G):
 
     edges = []
     for (source, target) in G.edges_iter():
-        edges.append(('%sB' % mapping[source], '%sA' % mapping[target]))
+        edges.append((f'{mapping[source]}B', f'{mapping[target]}A'))
         if not directed:
-            edges.append(('%sB' % mapping[target], '%sA' % mapping[source]))
+            edges.append((f'{mapping[target]}B', f'{mapping[source]}A'))
     H.add_edges_from(edges, capacity=1)
 
     # Store mapping as graph attribute
@@ -80,10 +80,10 @@ def build_auxiliary_edge_connectivity(G):
         H = nx.DiGraph()
         H.add_nodes_from(G.nodes_iter())
         H.add_edges_from(G.edges_iter(), capacity=1)
-        return H
     else:
         H = nx.DiGraph()
         H.add_nodes_from(G.nodes_iter())
         for (source, target) in G.edges_iter():
             H.add_edges_from([(source, target), (target, source)], capacity=1)
-        return H
+
+    return H

@@ -4,12 +4,13 @@ Draw a graph with matplotlib, color by degree.
 
 You must have matplotlib for this to work.
 """
+
 __author__ = """Aric Hagberg (hagberg@lanl.gov)"""
 import matplotlib.pyplot as plt
-    
+
 import networkx as nx
 
-G=nx.cubical_graph() 
+G=nx.cubical_graph()
 pos=nx.spring_layout(G) # positions for all nodes
 
 # nodes
@@ -35,15 +36,16 @@ nx.draw_networkx_edges(G,pos,
 
 
 # some math labels
-labels={}
-labels[0]=r'$a$'
-labels[1]=r'$b$'
-labels[2]=r'$c$'
-labels[3]=r'$d$'
-labels[4]=r'$\alpha$'
-labels[5]=r'$\beta$'
-labels[6]=r'$\gamma$'
-labels[7]=r'$\delta$'
+labels = {
+    0: '$a$',
+    1: '$b$',
+    2: '$c$',
+    3: '$d$',
+    4: '$\alpha$',
+    5: '$\beta$',
+    6: '$\gamma$',
+    7: '$\delta$',
+}
 nx.draw_networkx_labels(G,pos,labels,font_size=16)
 
 plt.axis('off')

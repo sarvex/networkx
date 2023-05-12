@@ -107,7 +107,7 @@ class Benchmark(object):
                 rat=t/bt
                 times.append( (tst, params, gc, t, bt, rat, cutoff) )
                 if rat > cutoff:
-                    errors+='Timing "'+tst+'" failed for class "'+gc+'". '
+                    errors += f'Timing "{tst}" failed for class "{gc}". '
                     errors+='Time ratio (new/base): {:f}\n'.format(rat)
                 if verbose:
                     print("{:12.3e}".format(t), end=" ")
@@ -132,7 +132,7 @@ class Benchmark(object):
         stmt,t_setup,runs,reps = params
         #
         setup="import networkx as NX\nG=NX.%s()\n"%gc + t_setup
-        G = eval("nx."+gc+"()")
+        G = eval(f"nx.{gc}()")
         cc = graph_type[ (G.is_directed(), G.is_multigraph()) ]
         compare_setup=("import networkx as NX\n"
                        "import timingclasses as tc\n"

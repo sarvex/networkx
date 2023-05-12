@@ -41,19 +41,19 @@ def test_simple():
 
             g2 = g1.subgraph(g1.nodes())
             if mod1:
-                if not g1.is_directed():
-                    g2.adj[1][0] = data1
-                    g2.adj[0][1] = data1
-                else:
+                if g1.is_directed():
                     g2.succ[1][0] = data1
                     g2.pred[0][1] = data1
-            if mod2:
-                if not g1.is_directed():
-                    g2.adj[0][0] = data2
                 else:
+                    g2.adj[1][0] = data1
+                    g2.adj[0][1] = data1
+            if mod2:
+                if g1.is_directed():
                     g2.succ[0][0] = data2
                     g2.pred[0][0] = data2
 
+                else:
+                    g2.adj[0][0] = data2
             assert_false(nx.is_isomorphic(g1,g2,edge_match=em))
 
 def test_weightkey():

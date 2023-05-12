@@ -78,8 +78,7 @@ def trac_ticket_role(name, rawtext, text, lineno, inliner,
         if not base:
             raise AttributeError
     except AttributeError as err:
-        msg = 'trac_url configuration value is not set (%s)'
-        raise ValueError(msg % str(err))
+        raise ValueError(f'trac_url configuration value is not set ({str(err)})')
 
     slash = '/' if base[-1] != '/' else ''
     prefix = 'ticket '
@@ -97,8 +96,7 @@ def trac_changeset_role(name, rawtext, text, lineno, inliner,
         if not base:
             raise AttributeError
     except AttributeError as err:
-        msg = 'trac_url configuration value is not set (%s)'
-        raise ValueError(msg % str(err))    
+        raise ValueError(f'trac_url configuration value is not set ({str(err)})')    
 
     slash = '/' if base[-1] != '/' else ''
     unescaped = utils.unescape(text)
@@ -112,7 +110,7 @@ def trac_changeset_role(name, rawtext, text, lineno, inliner,
     else:
         # hg: use the first 12 hash characters
         display = unescaped[:12]
-        
+
     uri = base + slash + 'changeset/' + text
     node += nodes.reference(rawtext, display, refuri=uri, **options)
     return [node], []

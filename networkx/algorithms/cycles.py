@@ -83,7 +83,7 @@ def cycle_basis(G,root=None):
                 if nbr not in used:   # new node
                     pred[nbr]=z
                     stack.append(nbr)
-                    used[nbr]=set([z])
+                    used[nbr] = {z}
                 elif nbr == z:        # self loops
                     cycles.append([z])
                 elif nbr not in zused:# found a cycle
@@ -162,7 +162,7 @@ def simple_cycles(G):
     cycle_basis
     """
     def _unblock(thisnode,blocked,B):
-        stack=set([thisnode])
+        stack = {thisnode}
         while stack:
             node=stack.pop()
             if node in blocked:
@@ -174,8 +174,6 @@ def simple_cycles(G):
     # We assign the arbitrary ordering given by the strongly connected comps
     # There is no need to track the ordering as each node removed as processed.
     subG = type(G)(G.edges_iter()) # save the actual graph so we can mutate it here
-                              # We only take the edges because we do not want to
-                              # copy edge and node attributes here.
     sccs = list(nx.strongly_connected_components(subG))
     while sccs:
         scc=sccs.pop()
@@ -449,7 +447,7 @@ def find_cycle(G, source=None, orientation='original'):
             explored.update(seen)
 
     else:
-        assert(len(cycle) == 0)
+        assert not cycle
         raise nx.exception.NetworkXNoCycle('No cycle found.')
 
     # We now have a list of edges which ends on a cycle.

@@ -47,12 +47,7 @@ def dfs_edges(G, source=None):
     If a source is not specified then a source is chosen arbitrarily and
     repeatedly until all components in the graph are searched.
     """
-    if source is None:
-        # produce edges for all components
-        nodes = G
-    else:
-        # produce edges for components with source
-        nodes = [source]
+    nodes = G if source is None else [source]
     visited=set()
     for start in nodes:
         if start in visited:
@@ -132,7 +127,7 @@ def dfs_predecessors(G, source=None):
     If a source is not specified then a source is chosen arbitrarily and
     repeatedly until all components in the graph are searched.
     """
-    return dict((t,s) for s,t in dfs_edges(G,source=source))
+    return {t: s for s,t in dfs_edges(G,source=source)}
 
 
 def dfs_successors(G, source=None):
@@ -204,11 +199,11 @@ def dfs_postorder_nodes(G,source=None):
     If a source is not specified then a source is chosen arbitrarily and
     repeatedly until all components in the graph are searched.
     """
-    post=(v for u,v,d in nx.dfs_labeled_edges(G,source=source)
-          if d['dir']=='reverse')
-    # potential modification: chain source to end of post-ordering
-    # return chain(post,[source])
-    return post
+    return (
+        v
+        for u, v, d in nx.dfs_labeled_edges(G, source=source)
+        if d['dir'] == 'reverse'
+    )
 
 
 def dfs_preorder_nodes(G, source=None):
@@ -243,11 +238,11 @@ def dfs_preorder_nodes(G, source=None):
     If a source is not specified then a source is chosen arbitrarily and
     repeatedly until all components in the graph are searched.
     """
-    pre=(v for u,v,d in nx.dfs_labeled_edges(G,source=source)
-         if d['dir']=='forward')
-    # potential modification: chain source to beginning of pre-ordering
-    # return chain([source],pre)
-    return pre
+    return (
+        v
+        for u, v, d in nx.dfs_labeled_edges(G, source=source)
+        if d['dir'] == 'forward'
+    )
 
 
 def dfs_labeled_edges(G, source=None):
@@ -283,12 +278,7 @@ def dfs_labeled_edges(G, source=None):
     """
     # Based on http://www.ics.uci.edu/~eppstein/PADS/DFS.py
     # by D. Eppstein, July 2004.
-    if source is None:
-        # produce edges for all components
-        nodes = G
-    else:
-        # produce edges for components with source
-        nodes = [source]
+    nodes = G if source is None else [source]
     visited = set()
     for start in nodes:
         if start in visited:

@@ -150,12 +150,7 @@ def katz_centrality(G, alpha=0.1, beta=1.0,
 
     nnodes = G.number_of_nodes()
 
-    if nstart is None:
-        # choose starting vector with entries of 0
-        x = dict([(n,0) for n in G])
-    else:
-        x = nstart
-
+    x = dict([(n,0) for n in G]) if nstart is None else nstart
     try:
         b = dict.fromkeys(G,float(beta))
     except (TypeError,ValueError,AttributeError):
@@ -165,7 +160,7 @@ def katz_centrality(G, alpha=0.1, beta=1.0,
                                    'must have a value for every node')
 
     # make up to max_iter iterations
-    for i in range(max_iter):
+    for _ in range(max_iter):
         xlast = x
         x = dict.fromkeys(xlast, 0)
         # do the multiplication y^T = Alpha * x^T A - Beta
@@ -176,7 +171,7 @@ def katz_centrality(G, alpha=0.1, beta=1.0,
             x[n] = alpha*x[n] + b[n]
 
         # check convergence
-        err = sum([abs(x[n]-xlast[n]) for n in x])
+        err = sum(abs(x[n]-xlast[n]) for n in x)
         if err < nnodes*tol:
             if normalized:
                 # normalize vector

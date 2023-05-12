@@ -66,32 +66,22 @@ def from_agraph(A,create_using=None):
     """
     if create_using is None:
         if A.is_directed():
-            if A.is_strict():
-                create_using=nx.DiGraph()
-            else:
-                create_using=nx.MultiDiGraph()
+            create_using = nx.DiGraph() if A.is_strict() else nx.MultiDiGraph()
         else:
-            if A.is_strict():
-                create_using=nx.Graph()
-            else:
-                create_using=nx.MultiGraph()
-
+            create_using = nx.Graph() if A.is_strict() else nx.MultiGraph()
     # assign defaults
     N=nx.empty_graph(0,create_using)
-    N.name=''
-    if A.name is not None:
-        N.name=A.name
-
+    N.name = A.name if A.name is not None else ''
     # add nodes, attributes to N.node_attr
     for n in A.nodes():
-        str_attr=dict((str(k),v) for k,v in n.attr.items())
+        str_attr = {str(k): v for k,v in n.attr.items()}
         N.add_node(str(n),**str_attr)
 
     # add edges, assign edge data as dictionary of attributes
     for e in A.edges():
         u,v=str(e[0]),str(e[1])
         attr=dict(e.attr)
-        str_attr=dict((str(k),v) for k,v in attr.items())
+        str_attr = {str(k): v for k,v in attr.items()}
         if not N.is_multigraph():
             if e.name is not None:
                 str_attr['key']=e.name
@@ -148,11 +138,11 @@ def to_agraph(N):
 
     if N.is_multigraph():
         for u,v,key,edgedata in N.edges_iter(data=True,keys=True):
-            str_edgedata=dict((k,str(v)) for k,v in edgedata.items())
+            str_edgedata = {k: str(v) for k,v in edgedata.items()}
             A.add_edge(u,v,key=str(key),**str_edgedata)
     else:
         for u,v,edgedata in N.edges_iter(data=True):
-            str_edgedata=dict((k,str(v)) for k,v in edgedata.items())
+            str_edgedata = {k: str(v) for k,v in edgedata.items()}
             A.add_edge(u,v,**str_edgedata)
 
 
@@ -255,7 +245,7 @@ def pygraphviz_layout(G,prog='neato',root=None, args=''):
         raise ImportError('requires pygraphviz ',
                           'http://pygraphviz.github.io/')
     if root is not None:
-        args+="-Groot=%s"%root
+        args += f"-Groot={root}"
     A=to_agraph(G)
     A.layout(prog=prog,args=args)
     node_pos={}
@@ -384,15 +374,8 @@ def view_pygraphviz(G, edgelabel=None, prog='dot', args='',
 
     if path is None:
         ext = 'png'
-        if suffix:
-            suffix = '_%s.%s' % (suffix, ext)
-        else:
-            suffix = '.%s' % (ext,)
+        suffix = f'_{suffix}.{ext}' if suffix else f'.{ext}'
         path = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
-    else:
-        # Assume the decorator worked and it is a file-object.
-        pass
-
     display_pygraphviz(A, path=path, prog=prog, args=args)
 
     return path.name, A

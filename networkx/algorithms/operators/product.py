@@ -19,7 +19,7 @@ __all__ = ['tensor_product','cartesian_product',
            'lexicographic_product', 'strong_product']
 
 def _dict_product(d1,d2):
-    return dict((k,(d1.get(k),d2.get(k))) for k in set(d1)|set(d2))
+    return {k: (d1.get(k),d2.get(k)) for k in set(d1)|set(d2)}
 
 
 # Generators for producting graph products
@@ -106,13 +106,10 @@ def _edges_cross_nodes_and_nodes(G,H):
                         yield (u,x),(v,y),d
 
 def _init_product_graph(G,H):
-    if not G.is_directed() == H.is_directed():
+    if G.is_directed() != H.is_directed():
         raise nx.NetworkXError("G and H must be both directed or",
                                "both undirected")
-    if G.is_multigraph() or H.is_multigraph():
-        GH = nx.MultiGraph()
-    else:
-        GH = nx.Graph()
+    GH = nx.MultiGraph() if G.is_multigraph() or H.is_multigraph() else nx.Graph()
     if G.is_directed():
         GH = GH.to_directed()
     return GH
@@ -168,7 +165,7 @@ def tensor_product(G,H):
     GH.add_edges_from(_directed_edges_cross_edges(G,H))
     if not GH.is_directed():
         GH.add_edges_from(_undirected_edges_cross_edges(G,H))
-    GH.name = "Tensor product("+G.name+","+H.name+")"
+    GH.name = f"Tensor product({G.name},{H.name})"
     return GH
 
 def cartesian_product(G,H):
@@ -214,14 +211,14 @@ def cartesian_product(G,H):
     Edge attributes and edge keys (for multigraphs) are also copied to the
     new product graph
     """
-    if not G.is_directed() == H.is_directed():
+    if G.is_directed() != H.is_directed():
         raise nx.NetworkXError("G and H must be both directed or",
                                "both undirected")
     GH = _init_product_graph(G,H)
     GH.add_nodes_from(_node_product(G,H))
     GH.add_edges_from(_edges_cross_nodes(G,H))
     GH.add_edges_from(_nodes_cross_edges(G,H))
-    GH.name = "Cartesian product("+G.name+","+H.name+")"
+    GH.name = f"Cartesian product({G.name},{H.name})"
     return GH
 
 def lexicographic_product(G,H):
@@ -272,7 +269,7 @@ def lexicographic_product(G,H):
     GH.add_edges_from(_edges_cross_nodes_and_nodes(G,H))
     # For each x in G, only if there is an edge in H
     GH.add_edges_from(_nodes_cross_edges(G,H))
-    GH.name = "Lexicographic product("+G.name+","+H.name+")"
+    GH.name = f"Lexicographic product({G.name},{H.name})"
     return GH
 
 def strong_product(G,H):
@@ -326,5 +323,5 @@ def strong_product(G,H):
     GH.add_edges_from(_directed_edges_cross_edges(G,H))
     if not GH.is_directed():
         GH.add_edges_from(_undirected_edges_cross_edges(G,H))
-    GH.name = "Strong product("+G.name+","+H.name+")"
+    GH.name = f"Strong product({G.name},{H.name})"
     return GH

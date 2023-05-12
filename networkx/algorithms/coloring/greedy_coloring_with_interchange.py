@@ -27,7 +27,7 @@ class Node(object):
             adj_entry.col_next.col_prev = adj_entry
 
     def clear_color(self, adj_entry, color):
-        if adj_entry.col_prev == None:
+        if adj_entry.col_prev is None:
             self.adj_color[color] = adj_entry.col_next
         else:
             adj_entry.col_prev.col_next = adj_entry.col_next
@@ -64,8 +64,8 @@ class AdjEntry(object):
             self.node_id,
             self.next,
             self.mate.node_id,
-            None if self.col_next == None else self.col_next.node_id,
-            None if self.col_prev == None else self.col_prev.node_id
+            None if self.col_next is None else self.col_next.node_id,
+            None if self.col_prev is None else self.col_prev.node_id,
         )
 
 
@@ -119,7 +119,7 @@ def greedy_coloring_with_interchange(original_graph, nodes):
                 col1 += 1
                 neighbor_cols = (
                     graph[node].iter_neighbors_color(col1))
-                col1_adj = [it for it in neighbor_cols]
+                col1_adj = list(neighbor_cols)
 
                 col2 = col1
                 while connected and col2 < k:

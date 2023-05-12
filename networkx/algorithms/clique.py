@@ -177,18 +177,16 @@ def find_cliques(G):
                 cand.remove(q)
                 Q[-1] = q
                 adj_q = adj[q]
-                subg_q = subg & adj_q
-                if not subg_q:
-                    yield Q[:]
-                else:
-                    cand_q = cand & adj_q
-                    if cand_q:
+                if subg_q := subg & adj_q:
+                    if cand_q := cand & adj_q:
                         stack.append((subg, cand, ext_u))
                         Q.append(None)
                         subg = subg_q
                         cand = cand_q
                         u = max(subg, key=lambda u: len(cand & adj[u]))
                         ext_u = cand - adj[u]
+                else:
+                    yield Q[:]
             else:
                 Q.pop()
                 subg, cand, ext_u = stack.pop()
@@ -263,8 +261,7 @@ def find_cliques_recursive(G):
             else:
                 cand_q = cand & adj_q
                 if cand_q:
-                    for clique in expand(subg_q, cand_q):
-                        yield clique
+                    yield from expand(subg_q, cand_q)
             Q.pop()
 
     return expand(set(G), set(G))
@@ -337,17 +334,15 @@ def make_clique_bipartite(G,fpos=None,create_using=None,name=None):
        cpos=0.
        ppos=0.
     for i,cl in enumerate(cliq):
-       name= -i-1   # Top nodes get negative names
-       B.add_node(name)
-       B.node_type[name]="Top"
-       if fpos:
-          if name not in B.pos:
-             B.pos[name]=(0.2,cpos)
-             cpos +=delta_cpos
-       for v in cl:
-          B.add_edge(name,v)
-          if fpos is not None:
-             if v not in B.pos:
+        name= -i-1   # Top nodes get negative names
+        B.add_node(name)
+        B.node_type[name]="Top"
+        if fpos and name not in B.pos:
+            B.pos[name]=(0.2,cpos)
+            cpos +=delta_cpos
+        for v in cl:
+            B.add_edge(name,v)
+            if fpos is not None and v not in B.pos:
                 B.pos[v]=(0.8,ppos)
                 ppos +=delta_ppos
     return B
@@ -407,7 +402,7 @@ def graph_clique_number(G,cliques=None):
     """
     if cliques is None:
         cliques=find_cliques(G)
-    return   max( [len(c) for c in cliques] )
+    return max(len(c) for c in cliques)
 
 
 def graph_number_of_cliques(G,cliques=None):
@@ -448,11 +443,9 @@ def node_clique_number(G,nodes=None,cliques=None):
     if not isinstance(nodes, list):   # check for a list
         v=nodes
         # assume it is a single value
-        d=max([len(c) for c in cliques if v in c])
+        d = max(len(c) for c in cliques if v in c)
     else:
-        d={}
-        for v in nodes:
-            d[v]=max([len(c) for c in cliques if v in c])
+        d = {v: max(len(c) for c in cliques if v in c) for v in nodes}
     return d
 
     # if nodes is None:                 # none, use entire graph
@@ -483,15 +476,11 @@ def number_of_cliques(G,nodes=None,cliques=None):
     if nodes is None:
         nodes=G.nodes()   # none, get entire graph
 
-    if not isinstance(nodes, list):   # check for a list
-        v=nodes
+    if isinstance(nodes, list):
+        return {v: len([1 for c in cliques if v in c]) for v in nodes}
+    v=nodes
         # assume it is a single value
-        numcliq=len([1 for c in cliques if v in c])
-    else:
-        numcliq={}
-        for v in nodes:
-            numcliq[v]=len([1 for c in cliques if v in c])
-    return numcliq
+    return len([1 for c in cliques if v in c])
 
 
 def cliques_containing_node(G,nodes=None,cliques=None):
@@ -506,12 +495,8 @@ def cliques_containing_node(G,nodes=None,cliques=None):
     if nodes is None:
         nodes=G.nodes()   # none, get entire graph
 
-    if not isinstance(nodes, list):   # check for a list
-        v=nodes
+    if isinstance(nodes, list):
+        return {v: [c for c in cliques if v in c] for v in nodes}
+    v=nodes
         # assume it is a single value
-        vcliques=[c for c in cliques if v in c]
-    else:
-        vcliques={}
-        for v in nodes:
-            vcliques[v]=[c for c in cliques if v in c]
-    return vcliques
+    return [c for c in cliques if v in c]

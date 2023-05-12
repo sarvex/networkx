@@ -387,18 +387,16 @@ class MultiDiGraph(MultiGraph,DiGraph):
         """
         try:
             d=self.adj[u][v]
-        except (KeyError):
-            raise NetworkXError(
-                "The edge %s-%s is not in the graph."%(u,v))
+        except KeyError:
+            raise NetworkXError(f"The edge {u}-{v} is not in the graph.")
         # remove the edge with specified data
         if key is None:
             d.popitem()
         else:
             try:
                 del d[key]
-            except (KeyError):
-                raise NetworkXError(
-                "The edge %s-%s with key %s is not in the graph."%(u,v,key))
+            except KeyError:
+                raise NetworkXError(f"The edge {u}-{v} with key {key} is not in the graph.")
         if len(d)==0:
             # remove the key entries if last edge
             del self.succ[u][v]
@@ -632,18 +630,14 @@ class MultiDiGraph(MultiGraph,DiGraph):
 
         if weight is None:
             for (n,succ),(n2,pred) in nodes_nbrs:
-                indeg = sum([len(data) for data in pred.values()])
-                outdeg = sum([len(data) for data in succ.values()])
+                indeg = sum(len(data) for data in pred.values())
+                outdeg = sum(len(data) for data in succ.values())
                 yield (n, indeg + outdeg)
         else:
         # edge weighted graph - degree is sum of nbr edge weights
             for (n,succ),(n2,pred) in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in pred.values()
-                           for d in data.values()])
-                deg += sum([d.get(weight,1)
-                           for data in succ.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in pred.values() for d in data.values())
+                deg += sum(d.get(weight,1) for data in succ.values() for d in data.values())
                 yield (n, deg)
 
 
@@ -689,13 +683,11 @@ class MultiDiGraph(MultiGraph,DiGraph):
 
         if weight is None:
             for n,nbrs in nodes_nbrs:
-                yield (n, sum([len(data) for data in nbrs.values()]) )
+                yield (n, sum(len(data) for data in nbrs.values()))
         else:
             # edge weighted graph - degree is sum of nbr edge weights
             for n,pred in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in pred.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in pred.values() for d in data.values())
                 yield (n, deg)
 
 
@@ -741,12 +733,10 @@ class MultiDiGraph(MultiGraph,DiGraph):
 
         if weight is None:
             for n,nbrs in nodes_nbrs:
-                yield (n, sum([len(data) for data in nbrs.values()]) )
+                yield (n, sum(len(data) for data in nbrs.values()))
         else:
             for n,succ in nodes_nbrs:
-                deg = sum([d.get(weight,1)
-                           for data in succ.values()
-                           for d in data.values()])
+                deg = sum(d.get(weight,1) for data in succ.values() for d in data.values())
                 yield (n, deg)
 
     def is_multigraph(self):
@@ -938,7 +928,7 @@ class MultiDiGraph(MultiGraph,DiGraph):
             the original graph (this changes the original graph).
         """
         if copy:
-            H = self.__class__(name="Reverse of (%s)"%self.name)
+            H = self.__class__(name=f"Reverse of ({self.name})")
             H.add_nodes_from(self)
             H.add_edges_from( (v,u,k,deepcopy(d)) for u,v,k,d 
                               in self.edges(keys=True, data=True) )

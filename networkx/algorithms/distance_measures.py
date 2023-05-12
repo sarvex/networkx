@@ -61,13 +61,10 @@ def eccentricity(G, v=None, sp=None):
         if L != order:
             msg = "Graph not connected: infinite path length"
             raise networkx.NetworkXError(msg)
-            
+
         e[n]=max(length.values())
 
-    if v in G:
-        return e[v]  # return single value
-    else:
-        return e
+    return e[v] if v in G else e
 
 
 def diameter(G, e=None):
@@ -117,8 +114,7 @@ def periphery(G, e=None):
     if e is None:
         e=eccentricity(G)
     diameter=max(e.values())
-    p=[v for v in e if e[v]==diameter]
-    return p
+    return [v for v in e if e[v]==diameter]
 
 
 def radius(G, e=None):
@@ -165,6 +161,5 @@ def center(G, e=None):
         e=eccentricity(G)
     # order the nodes by path length
     radius=min(e.values())
-    p=[v for v in e if e[v]==radius]
-    return p
+    return [v for v in e if e[v]==radius]
 

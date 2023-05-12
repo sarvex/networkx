@@ -54,7 +54,7 @@ def triangles(G, nodes=None):
     if nodes in G: 
         # return single value
         return next(_triangles_and_degree_iter(G,nodes))[2] // 2
-    return dict( (v,t // 2) for v,d,t in _triangles_and_degree_iter(G,nodes))
+    return {v: t // 2 for v,d,t in _triangles_and_degree_iter(G,nodes)}
 
 def _triangles_and_degree_iter(G,nodes=None):
     """ Return an iterator of (node, degree, triangles).  
@@ -72,10 +72,10 @@ def _triangles_and_degree_iter(G,nodes=None):
         nodes_nbrs= ( (n,G[n]) for n in G.nbunch_iter(nodes) )
 
     for v,v_nbrs in nodes_nbrs:
-        vs=set(v_nbrs)-set([v])
+        vs = set(v_nbrs) - {v}
         ntriangles=0
         for w in vs:
-            ws=set(G[w])-set([w])
+            ws = set(G[w]) - {w}
             ntriangles+=len(vs.intersection(ws))
         yield (v,len(vs),ntriangles)
 
@@ -100,7 +100,7 @@ def _weighted_triangles_and_degree_iter(G, nodes=None, weight='weight'):
         nodes_nbrs= ( (n,G[n]) for n in G.nbunch_iter(nodes) )
 
     for i,nbrs in nodes_nbrs:
-        inbrs=set(nbrs)-set([i])
+        inbrs = set(nbrs) - {i}
         weighted_triangles=0.0
         seen=set()
         for j in inbrs:
@@ -241,17 +241,8 @@ def clustering(G, nodes=None, weight=None):
     else:
         td_iter=_triangles_and_degree_iter(G,nodes)
 
-    clusterc={}
-
-    for v,d,t in td_iter:
-        if t==0:
-            clusterc[v]=0.0
-        else:
-            clusterc[v]=t/float(d*(d-1))
-
-    if nodes in G: 
-        return list(clusterc.values())[0] # return single value
-    return clusterc
+    clusterc = {v: 0.0 if t==0 else t/float(d*(d-1)) for v, d, t in td_iter}
+    return list(clusterc.values())[0] if nodes in G else clusterc
 
 def transitivity(G):
     r"""Compute graph transitivity, the fraction of all possible triangles 
@@ -286,10 +277,7 @@ def transitivity(G):
     for v,d,t in _triangles_and_degree_iter(G):
         contri += d*(d-1)
         triangles += t
-    if triangles==0: # we had no triangles or possible triangles
-        return 0.0
-    else:
-        return triangles/float(contri)
+    return 0.0 if triangles==0 else triangles/float(contri)
 
 def square_clustering(G, nodes=None):
     r""" Compute the squares clustering coefficient for nodes.
@@ -341,16 +329,13 @@ def square_clustering(G, nodes=None):
         Cycles and clustering in bipartite networks.
         Physical Review E (72) 056127.
     """
-    if nodes is None:
-        node_iter = G
-    else:
-        node_iter =  G.nbunch_iter(nodes) 
+    node_iter = G if nodes is None else G.nbunch_iter(nodes)
     clustering = {}
     for v in node_iter:
         clustering[v] = 0.0
         potential=0
         for u,w in combinations(G[v], 2):
-            squares = len((set(G[u]) & set(G[w])) - set([v]))
+            squares = len((set(G[u]) & set(G[w])) - {v})
             clustering[v] += squares
             degm = squares + 1.0
             if w in G[u]:
@@ -358,6 +343,4 @@ def square_clustering(G, nodes=None):
             potential += (len(G[u]) - degm) * (len(G[w]) - degm) + squares
         if potential > 0:
             clustering[v] /= potential
-    if nodes in G: 
-        return list(clustering.values())[0] # return single value
-    return clustering
+    return list(clustering.values())[0] if nodes in G else clustering

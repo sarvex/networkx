@@ -108,7 +108,7 @@ def all_node_cuts(G, k=None, flow_func=None):
     # step 2: 
     # Find k nodes with top degree, call it X:
     degree = G.degree().items()
-    X = set(n for n, d in sorted(degree, key=itemgetter(1), reverse=True)[:k])
+    X = {n for n, d in sorted(degree, key=itemgetter(1), reverse=True)[:k]}
     # Check if X is a k-node-cutset
     if _is_separating_set(G, X):
         seen.append(X)
@@ -121,7 +121,7 @@ def all_node_cuts(G, k=None, flow_func=None):
         for v in non_adjacent:
             # step 4: compute maximum flow in an Even-Tarjan reduction H of G
             # and step:5 build the associated residual network R
-            R = flow_func(H, '%sB' % mapping[x], '%sA' % mapping[v], **kwargs)
+            R = flow_func(H, f'{mapping[x]}B', f'{mapping[v]}A', **kwargs)
             flow_value = R.graph['flow_value']
 
             if flow_value == k:
@@ -140,14 +140,14 @@ def all_node_cuts(G, k=None, flow_func=None):
                     # Nodes in an antichain of the condensation graph of
                     # the residual network map to a closed set of nodes that
                     # define a node partition of the auxiliary digraph H.
-                    S = set(n for n, scc in cmap.items() if scc in antichain)
+                    S = {n for n, scc in cmap.items() if scc in antichain}
                     # Find the cutset that links the node partition (S,~S) in H
                     cutset = set()
                     for u in S:
                         cutset.update((u, w) for w in H[u] if w not in S)
                     # The edges in H that form the cutset are internal edges
                     # (ie edges that represent a node of the original graph G)
-                    node_cut = set(H.node[n]['id'] for edge in cutset for n in edge)
+                    node_cut = {H.node[n]['id'] for edge in cutset for n in edge}
 
                     if len(node_cut) == k:
                         if node_cut not in seen:
@@ -158,15 +158,11 @@ def all_node_cuts(G, k=None, flow_func=None):
                         # of adding the edge in the input graph 
                         # G.add_edge(x, v) and then regenerate H and R:
                         # Add edges to the auxiliary digraph.
-                        H.add_edge('%sB' % mapping[x], '%sA' % mapping[v],
-                                   capacity=1)
-                        H.add_edge('%sB' % mapping[v], '%sA' % mapping[x],
-                                   capacity=1)
+                        H.add_edge(f'{mapping[x]}B', f'{mapping[v]}A', capacity=1)
+                        H.add_edge(f'{mapping[v]}B', f'{mapping[x]}A', capacity=1)
                         # Add edges to the residual network.
-                        R.add_edge('%sB' % mapping[x], '%sA' % mapping[v],
-                                   capacity=1)
-                        R.add_edge('%sA' % mapping[v], '%sB' % mapping[x],
-                                   capacity=1)
+                        R.add_edge(f'{mapping[x]}B', f'{mapping[v]}A', capacity=1)
+                        R.add_edge(f'{mapping[v]}A', f'{mapping[x]}B', capacity=1)
                         break
                 # Add again the saturated edges to reuse the residual network
                 R.add_edges_from(saturated_edges)
@@ -205,7 +201,7 @@ def antichain_generator(G):
         while queue:
             x = queue.pop()
             new_antichain = antichain + [x]
-            new_queue = [t for t in queue if not ((t in TC[x]) or (x in TC[t]))]
+            new_queue = [t for t in queue if t not in TC[x] and x not in TC[t]]
             antichains_queues.append((new_antichain, new_queue))
 
 
@@ -216,6 +212,4 @@ def _is_separating_set(G, cut):
 
     H = G.copy()
     H.remove_nodes_from(cut)
-    if nx.is_connected(H):
-        return False
-    return True
+    return not nx.is_connected(H)

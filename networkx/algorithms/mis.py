@@ -60,17 +60,12 @@ def maximal_independent_set(G, nodes=None):
     This algorithm does not solve the maximum independent set problem.
 
     """
-    if not nodes:
-        nodes = set([random.choice(G.nodes())])
-    else:
-        nodes = set(nodes)
+    nodes = {random.choice(G.nodes())} if not nodes else set(nodes)
     if not nodes.issubset(G):
-        raise nx.NetworkXUnfeasible(
-                "%s is not a subset of the nodes of G" % nodes)
+        raise nx.NetworkXUnfeasible(f"{nodes} is not a subset of the nodes of G")
     neighbors = set.union(*[set(G.neighbors(v)) for v in nodes])
     if set.intersection(neighbors, nodes):
-        raise nx.NetworkXUnfeasible(
-                "%s is not an independent set of G" % nodes)
+        raise nx.NetworkXUnfeasible(f"{nodes} is not an independent set of G")
     indep_nodes = list(nodes)
     available_nodes = set(G.nodes()).difference(neighbors.union(nodes))
     while available_nodes:

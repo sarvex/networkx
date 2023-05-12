@@ -95,7 +95,7 @@ def current_flow_betweenness_centrality_subset(G,sources,targets,
     .. [2] A measure of betweenness centrality based on random walks,
        M. E. J. Newman, Social Networks 27, 39-54 (2005).
     """
-    from networkx.utils import reverse_cuthill_mckee_ordering 
+    from networkx.utils import reverse_cuthill_mckee_ordering
     try:
         import numpy as np
     except ImportError:
@@ -125,14 +125,11 @@ def current_flow_betweenness_centrality_subset(G,sources,targets,
             for tt in targets:
                 j=mapping[tt]
                 betweenness[s]+=0.5*np.abs(row[i]-row[j]) 
-                betweenness[t]+=0.5*np.abs(row[i]-row[j]) 
-    if normalized:
-        nb=(n-1.0)*(n-2.0) # normalization factor
-    else:
-        nb=2.0
+                betweenness[t]+=0.5*np.abs(row[i]-row[j])
+    nb = (n-1.0)*(n-2.0) if normalized else 2.0
     for v in H:
         betweenness[v]=betweenness[v]/nb+1.0/(2-n)
-    return dict((ordering[k],v) for k,v in betweenness.items())
+    return {ordering[k]: v for k,v in betweenness.items()}
 
 
 def edge_current_flow_betweenness_centrality_subset(G, sources, targets,
@@ -213,7 +210,7 @@ def edge_current_flow_betweenness_centrality_subset(G, sources, targets,
     .. [2] A measure of betweenness centrality based on random walks, 
        M. E. J. Newman, Social Networks 27, 39-54 (2005).
     """
-    from networkx.utils import reverse_cuthill_mckee_ordering 
+    from networkx.utils import reverse_cuthill_mckee_ordering
     try:
         import numpy as np
     except ImportError:
@@ -236,10 +233,7 @@ def edge_current_flow_betweenness_centrality_subset(G, sources, targets,
     mapping=dict(zip(ordering,range(n)))
     H = nx.relabel_nodes(G,mapping)
     betweenness=(dict.fromkeys(H.edges(),0.0))
-    if normalized:
-        nb=(n-1.0)*(n-2.0) # normalization factor
-    else:
-        nb=2.0
+    nb = (n-1.0)*(n-2.0) if normalized else 2.0
     for row,(e) in flow_matrix_row(H, weight=weight, dtype=dtype, 
                                    solver=solver):
         for ss in sources:
@@ -248,8 +242,7 @@ def edge_current_flow_betweenness_centrality_subset(G, sources, targets,
                 j=mapping[tt]
                 betweenness[e]+=0.5*np.abs(row[i]-row[j]) 
         betweenness[e]/=nb
-    return dict(((ordering[s],ordering[t]),v) 
-                for (s,t),v in betweenness.items())
+    return {(ordering[s],ordering[t]): v for (s,t),v in betweenness.items()}
 
 
 # fixture for nose tests

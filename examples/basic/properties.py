@@ -2,6 +2,7 @@
 """
 Compute some network properties for the lollipop graph.
 """
+
 #    Copyright (C) 2004 by 
 #    Aric Hagberg <hagberg@lanl.gov>
 #    Dan Schult <dschult@colgate.edu>
@@ -18,12 +19,10 @@ pathlengths=[]
 print("source vertex {target:length, }")
 for v in G.nodes():
     spl=single_source_shortest_path_length(G,v)
-    print('%s %s' % (v,spl))
-    for p in spl.values():
-        pathlengths.append(p)
-
+    print(f'{v} {spl}')
+    pathlengths.extend(iter(spl.values()))
 print('')
-print("average shortest path length %s" % (sum(pathlengths)/len(pathlengths)))
+print(f"average shortest path length {sum(pathlengths) / len(pathlengths)}")
 
 # histogram of path lengths 
 dist={}
@@ -41,8 +40,8 @@ for d in sorted(verts):
 
 print("radius: %d" % radius(G))
 print("diameter: %d" % diameter(G))
-print("eccentricity: %s" % eccentricity(G))
-print("center: %s" % center(G))
-print("periphery: %s" % periphery(G))
-print("density: %s" % density(G))
+print(f"eccentricity: {eccentricity(G)}")
+print(f"center: {center(G)}")
+print(f"periphery: {periphery(G)}")
+print(f"density: {density(G)}")
 

@@ -65,9 +65,9 @@ def all_simple_paths(G, source, target, cutoff=None):
     all_shortest_paths, shortest_path
     """
     if source not in G:
-        raise nx.NetworkXError('source node %s not in graph'%source)
+        raise nx.NetworkXError(f'source node {source} not in graph')
     if target not in G:
-        raise nx.NetworkXError('target node %s not in graph'%target)
+        raise nx.NetworkXError(f'target node {target} not in graph')
     if cutoff is None:
         cutoff = len(G)-1
     if G.is_multigraph():
@@ -118,7 +118,7 @@ def _all_simple_paths_multigraph(G, source, target, cutoff=None):
                 stack.append((v for u,v in G.edges(child)))
         else: #len(visited) == cutoff:
             count = ([child]+list(children)).count(target)
-            for i in range(count):
+            for _ in range(count):
                 yield visited + [target]
             stack.pop()
             visited.pop()

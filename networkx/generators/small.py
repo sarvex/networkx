@@ -89,12 +89,13 @@ def make_small_graph(graph_description, create_using=None):
     G=empty_graph(n, create_using)
     nodes=G.nodes()
 
-    if ltype=="adjacencylist":
+    if ltype == "adjacencylist":
         adjlist=graph_description[3]
-        if len(adjlist) != n:
+        if len(adjlist) == n:
+            G.add_edges_from([(u-1,v) for v in nodes for u in adjlist[v]])
+        else:
             raise NetworkXError("invalid graph_description")
-        G.add_edges_from([(u-1,v) for v in nodes for u in adjlist[v]])
-    elif ltype=="edgelist":
+    elif ltype == "edgelist":
         edgelist=graph_description[3]
         for e in edgelist:
             v1=e[0]-1
@@ -180,8 +181,7 @@ def bull_graph(create_using=None):
         5,
         [[2,3],[1,3,4],[1,2,5],[2],[3]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def chvatal_graph(create_using=None):
     """Return the Chvátal graph."""
@@ -193,8 +193,7 @@ def chvatal_graph(create_using=None):
          [6,9],[11,12],[11,12],[9,12],
          [11],[11,12],[],[]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def cubical_graph(create_using=None):
     """Return the 3-regular Platonic Cubical graph."""
@@ -205,8 +204,7 @@ def cubical_graph(create_using=None):
         [[2,4,5],[1,3,8],[2,4,7],[1,3,6],
          [1,6,8],[4,5,7],[3,6,8],[2,5,7]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def desargues_graph(create_using=None):
     """ Return the Desargues graph."""
@@ -222,8 +220,7 @@ def diamond_graph(create_using=None):
         4,
         [[2,3],[1,3,4],[1,2,4],[2,3]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def dodecahedral_graph(create_using=None):
     """ Return the Platonic Dodecahedral graph. """
@@ -259,8 +256,7 @@ def house_graph(create_using=None):
         5,
         [[2,3],[1,4],[1,4,5],[2,3,5],[3,4]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def house_x_graph(create_using=None):
     """Return the House graph with a cross inside the house square."""
@@ -270,8 +266,7 @@ def house_x_graph(create_using=None):
         5,
         [[2,3,4],[1,3,4],[1,2,4,5],[1,2,3,5],[3,4]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def icosahedral_graph(create_using=None):
     """Return the Platonic Icosahedral graph."""
@@ -283,8 +278,7 @@ def icosahedral_graph(create_using=None):
          [6,7,11,12],[7,12],[],[9,10,11,12],
          [10],[11],[12],[]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
     
 
 def krackhardt_kite_graph(create_using=None):
@@ -305,8 +299,7 @@ def krackhardt_kite_graph(create_using=None):
         [[2,3,4,6],[1,4,5,7],[1,4,6],[1,2,3,5,6,7],[2,4,7],
          [1,3,4,7,8],[2,4,5,6,8],[6,7,9],[8,10],[9]]
          ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def moebius_kantor_graph(create_using=None):
     """Return the Moebius-Kantor graph."""
@@ -322,8 +315,7 @@ def octahedral_graph(create_using=None):
         6,
         [[2,3,4,5],[3,4,6],[5,6],[5,6],[6],[]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
     
 def pappus_graph():
     """ Return the Pappus graph."""
@@ -340,8 +332,7 @@ def petersen_graph(create_using=None):
         [[2,5,6],[1,3,7],[2,4,8],[3,5,9],[4,1,10],[1,8,9],[2,9,10],
          [3,6,10],[4,6,7],[5,7,8]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 
 def sedgewick_maze_graph(create_using=None):
@@ -380,8 +371,7 @@ def truncated_cube_graph(create_using=None):
          [18,19],[21],[20],[24],
          [22],[23],[24],[]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
 def truncated_tetrahedron_graph(create_using=None):
     """Return the skeleton of the truncated Platonic tetrahedron."""
@@ -407,6 +397,5 @@ def tutte_graph(create_using=None):
          [37],[38,40],[39],[],[],
          [42,45],[43],[44,46],[45],[],[]]
         ]
-    G=make_small_undirected_graph(description, create_using)
-    return G
+    return make_small_undirected_graph(description, create_using)
 
